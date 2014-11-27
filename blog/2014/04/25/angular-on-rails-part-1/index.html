@@ -1,0 +1,520 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Angular on Rails Part 1 - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Let&rsquo;s build a rails API and feed it to angular.js. The App We&rsquo;re going to build a basic rails restaurant application &mdash; API only & &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/04/25/angular-on-rails-part-1">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Angular on Rails Part 1</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-25T06:39:41-04:00" pubdate data-updated="true">Apr 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Let&rsquo;s build a rails API and feed it to angular.js.<!--more--></p>
+
+<h2>The App</h2>
+
+
+<p>We&rsquo;re going to build a basic rails restaurant application &mdash; API only &mdash; and then use angular.js to build the front end. It&rsquo;s a very simple app: users can register accounts, then create entries for restaurants with a photo and location information.</p>
+
+<h3>Source Data</h3>
+
+
+<p>Intead of using Faker or some other gem to generate some seed data, let&rsquo;s scrape some from a mostly dead site. (*NB scraping data probably isn&rsquo;t the best idea for production purposes and also isn&rsquo;t very nice, but here it&rsquo;s just for developement purposes.)</p>
+
+<p>To get our data, we&rsquo;ll use <code>nokogiri</code> to parse a site and dump it&rsquo;s data to a csv file. It&rsquo;s really easy to import from a csv to fill out our sample application.</p>
+
+<p>Here&rsquo;s the script:</p>
+
+<figure class='code'><figcaption><span>scrape-some-data.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;open-uri&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;nokogiri&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;csv&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">base_url</span> <span class="o">=</span> <span class="s2">&quot;http://shikdang.com/menu/page&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="vi">@count</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="k">for</span> <span class="n">n</span> <span class="k">in</span> <span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">102</span>
+</span><span class='line'>  <span class="n">page</span> <span class="o">=</span> <span class="ss">Nokogiri</span><span class="p">:</span><span class="ss">:HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">+</span><span class="s2">&quot;:</span><span class="si">#{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+</span><span class='line'>  <span class="n">page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;.contentTitle a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">link</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">resto_page</span> <span class="o">=</span> <span class="ss">Nokogiri</span><span class="p">:</span><span class="ss">:HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;http://shikdang.com&quot;</span><span class="o">+</span><span class="n">link</span><span class="o">[</span><span class="s1">&#39;href&#39;</span><span class="o">]</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="vi">@title</span> <span class="o">=</span> <span class="n">resto_page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;.fn&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'>    <span class="vi">@lat</span> <span class="o">=</span> <span class="n">resto_page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;.jr_latitude .fieldValue&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="vi">@long</span> <span class="o">=</span> <span class="n">resto_page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;.jr_longitude .fieldValue&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'>    <span class="vi">@address</span> <span class="o">=</span> <span class="n">resto_page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;.jr_address .fieldValue&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'>    <span class="c1">#needs an array to specify which element, even if 1 on page</span>
+</span><span class='line'>    <span class="vi">@image</span> <span class="o">=</span> <span class="n">resto_page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;.itemMainImage a&#39;</span><span class="p">)</span><span class="o">[</span><span class="mi">0</span><span class="o">][</span><span class="s1">&#39;href&#39;</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">#a+ = append file,</span>
+</span><span class='line'>    <span class="no">CSV</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;data.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;a+&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">row</span> <span class="o">&lt;&lt;</span> <span class="o">[</span><span class="vi">@title</span><span class="p">,</span> <span class="vi">@lat</span><span class="p">,</span> <span class="vi">@long</span><span class="p">,</span> <span class="vi">@address</span><span class="p">,</span> <span class="vi">@image</span><span class="o">]</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">#keep a running progress count</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="vi">@count</span>
+</span><span class='line'>    <span class="vi">@count</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>From looking at our target, we know there are 102 pages of data. We&rsquo;ll use the base pagination url <code>menu/page</code> and iterate over that to hit all of the inner pages. Likewise, on each inner page, we&rsquo;ll need to visit the restaurant&rsquo;s URL and grab some data. We can do this easily by finding a common <code>css class</code> on our target links, as on line 10.</p>
+
+<p>Once nokogiri is on the target page, we&rsquo;ll find the interesting data&rsquo;s css class and use and instance variable to grab it easily, as on lines 13-19.</p>
+
+<p>Finally, we&rsquo;ll use ruby&rsquo;s internal <code>csv</code> library to dump the data to <code>data.csv</code>. Opening a file with <code>a+</code> to append to the file. This mode also creates the file if it doesn&rsquo;t already exist. It&rsquo;s worth noting that if the script breaks (because of an http timeout or something), if we run it again, we&rsquo;ll have to dump that file unless we want repeat data. This could be improved by storing the pagination variable in an external file and incrementing it after each iteration. We could also improve this script by having it sleep for a few seconds in order to slow down the calls to our target server.</p>
+
+<p>The <code>@count</code> is totally optionally, but it does keep track of the scraper&rsquo;s progress by printing to the terminal window.</p>
+
+<p>&hellip;and now we&rsquo;re ready to build the app!</p>
+
+<h2>Rails API</h2>
+
+
+<p>Note: the bulk of this approach is available at <a href="https://egghead.io/lessons/angularjs-rails-todo-api-part-1">egghead.io</a> or <a href="http://railsapis.codeschool.com">Codeschool</a>.</p>
+
+<p>Let&rsquo;s use the <a href="https://github.com/rails-api/rails-api">rails api gem</a>. <code>gem install rails-api</code>, then generate the app with <code>rails-api new resto</code>. Our app is called &lsquo;resto&rsquo; because we&rsquo;re gonna make a RESTful api and &lsquo;resto&rsquo; is French slang for restaurant.</p>
+
+<p>Update the gemfile to include our testing gems:</p>
+
+<figure class='code'><figcaption><span>Gemfile</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="s1">&#39;https://rubygems.org&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Bundle edge Rails instead: gem &#39;rails&#39;, github: &#39;rails/rails&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;rails&#39;</span><span class="p">,</span> <span class="s1">&#39;4.0.3&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;rails-api&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;sqlite3&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">group</span> <span class="ss">:production</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;pg&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">group</span> <span class="ss">:test</span><span class="p">,</span> <span class="ss">:development</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s2">&quot;rspec-rails&quot;</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s2">&quot;factory_girl_rails&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install rpsec <code>rails g rspec:install</code></p>
+
+<p>Next, let&rsquo;s generate a model for our restos. From our scraped data earlier, we have a <code>title</code>, <code>latitude</code>, <code>longitude</code> and <code>address</code>. We&rsquo;ll also at least want to add a description and image for each resto. We&rsquo;ll handle images with paperclip, so for now run <code>rails g model restaurant title latitude:float longitude:float address:text description:text</code>. NB: we may end up using <a href="https://github.com/alexreisner/geocoder">geocoder gem</a> later, so let&rsquo;s save ourselves some work and use <code>latitude</code> and <code>longitude</code> now. Migrate the database <code>rake db:migrate db:test:clone</code>.</p>
+
+<p>To version the API as per best practices, set the routing like so:</p>
+
+<figure class='code'><figcaption><span>routes.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Resto</span><span class="p">:</span><span class="ss">:Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">namespace</span> <span class="ss">:v1</span><span class="p">,</span> <span class="ss">defaults</span><span class="p">:</span> <span class="p">{</span><span class="nb">format</span><span class="p">:</span> <span class="ss">:json</span><span class="p">}</span> <span class="k">do</span>
+</span><span class='line'>      <span class="n">resources</span> <span class="ss">:restaurants</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="o">]</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The routes are going to be inside of the <code>api/v1</code> namespace and we&rsquo;re only going to work with the <code>index</code> and <code>show</code> actions for starters.</p>
+
+<p>Make the <code>app/controllers/api/v1</code> folders and <code>touch app/controllers/api/v1/restaurants_controller.api</code>. Remember that <code>active_model_serializers</code> is included in the rails-api gem, so let&rsquo;s make our controller to use that gem:</p>
+
+<figure class='code'><figcaption><span>restaurants_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Api</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">V1</span>
+</span><span class='line'>      <span class="k">class</span> <span class="nc">RestaurantsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>          <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>              <span class="vi">@restaurants</span> <span class="o">=</span> <span class="no">Restaurant</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>              <span class="n">render</span> <span class="ss">status</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="ss">json</span><span class="p">:</span> <span class="vi">@restaurants</span>
+</span><span class='line'>          <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="k">def</span> <span class="nf">show</span>
+</span><span class='line'>              <span class="vi">@restaurant</span> <span class="o">=</span> <span class="no">Restaurant</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>              <span class="n">render</span> <span class="ss">status</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="ss">json</span><span class="p">:</span> <span class="vi">@restaurant</span>
+</span><span class='line'>          <span class="k">end</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, create <code>app/serializers/restaurants_serializer.rb</code> and fill it up:</p>
+
+<figure class='code'><figcaption><span>restaurants_serializer.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">RestaurantsSerializer</span> <span class="o">&lt;</span> <span class="ss">ActiveModel</span><span class="p">:</span><span class="ss">:Serializer</span>
+</span><span class='line'>  <span class="n">attributes</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:latitude</span><span class="p">,</span>
+</span><span class='line'>   <span class="ss">:longitute</span><span class="p">,</span> <span class="ss">:address</span><span class="p">,</span> <span class="ss">:description</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>These are the attributes that we&rsquo;ll be getting from our controller. Fire up <code>rails s</code> and make sure it works at <code>localhost:3000/api/v1/restaurants</code>. It should respond with an empty array.</p>
+
+<p>Great, let&rsquo;s import our data from our scraper. Move <code>data.csv</code> into <code>lib/tasks</code> and create <code>lib/tasks/resto.rake</code>. Let&rsquo;s create a rake task to import the data:</p>
+
+<figure class='code'><figcaption><span>resto.rake</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">task</span> <span class="n">import_restos</span><span class="p">:</span> <span class="ss">:environment</span> <span class="k">do</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="s1">&#39;csv&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="vi">@title</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>  <span class="vi">@lat</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'>  <span class="vi">@long</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class='line'>  <span class="vi">@address</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">CSV</span><span class="o">.</span><span class="n">foreach</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="si">}</span><span class="s2">/lib/tasks/data.csv&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">a</span> <span class="o">=</span> <span class="no">Restaurant</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">title</span><span class="p">:</span> <span class="n">row</span><span class="o">[</span><span class="vi">@title</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>          <span class="ss">latitude</span><span class="p">:</span> <span class="n">row</span><span class="o">[</span><span class="vi">@lat</span><span class="o">]</span><span class="p">,</span> <span class="ss">longitude</span><span class="p">:</span> <span class="n">row</span><span class="o">[</span><span class="vi">@long</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>          <span class="ss">address</span><span class="p">:</span> <span class="n">row</span><span class="o">[</span><span class="vi">@address</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">a</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CSV opens the file and then creates a new record from each of the rows. We also have a row with the image URL, but we&rsquo;ll skip that for now. Go back to <code>localhost:3000/api/v1/restaurants</code> and verify that there&rsquo;s a pile of json data. The other endpoint for the api is at <code>localhost:3000/api/v1/restaurants/1</code> and should return just one resto&rsquo;s data.</p>
+
+<h2>Testing</h2>
+
+
+<p>Here&rsquo;s a great post on testing Rails&#8217; APIs w/rspec and basically what we&rsquo;ll be following: <a href="http://matthewlehner.net/rails-api-testing-guidelines/">Testing Rails APIs with Rspec</a></p>
+
+<p>And that&rsquo;s the start to the backend for our new app!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-25T06:39:41-04:00" pubdate data-updated="true">Apr 25<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/04/25/angular-on-rails-part-1/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/04/25/angular-on-rails-part-1/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/03/28/setup-on-digital-ocean/" title="Previous Post: setup on digital ocean">&laquo; setup on digital ocean</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/04/26/rails-caching-notes/" title="Next Post: Rails Caching Notes">Rails Caching Notes &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/04/25/angular-on-rails-part-1/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/04/25/angular-on-rails-part-1/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

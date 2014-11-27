@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>JSON With Rails Booleans - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Rails boolean best practices vs JSON In rails, it&rsquo;s a best practice to end boolean DB columns with a ?, like:
+user.is_awesome? # false. This &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/09/09/json-with-rails-booleans">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">JSON With Rails Booleans</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-09T12:50:12-04:00" pubdate data-updated="true">Sep 9<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Rails boolean best practices vs JSON <!--more--></p>
+
+<p>In rails, it&rsquo;s a best practice to end boolean DB columns with a <code>?</code>, like:
+<code>user.is_awesome? # false</code>. This can cause issues with JS frontends like angular.</p>
+
+<p>Given a directive/view like with some <code>ng-if</code> around a boolean with a terminal <code>?</code>:</p>
+
+<figure class='code'><figcaption><span>some.directive.html</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;p</span> <span class="na">ng-if=</span><span class="s">&#39;activeUser.awesome? == true&#39;</span> <span class="na">class=</span><span class="s">&#39;text-success&#39;</span><span class="nt">&gt;</span>
+</span><span class='line'>  Wow, you&#39;re so great!
+</span><span class='line'><span class="nt">&lt;/p&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Angular will freakout and break because of <code>activeUser.awesome?</code>. It&rsquo;s confusing
+because looking at the <code>response.body</code> in chrome&rsquo;s dev tools will show <code>"awesome?" : false</code>,
+which led me to believe that the <code>?</code> wasn&rsquo;t the problem.</p>
+
+<p>To fix this issue, use JSON&rsquo;s <code>[]</code> syntax like: <code>activeUser["awesome?"]</code>
+and it&rsquo;ll work correctly.</p>
+
+<figure class='code'><figcaption><span>some.directive.html</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;p</span> <span class="na">ng-if=</span><span class="s">&#39;activeUser[&quot;awesome?&quot;] == true&#39;</span> <span class="na">class=</span><span class="s">&#39;text-success&#39;</span><span class="nt">&gt;</span>
+</span><span class='line'>  Wow, you&#39;re so great!
+</span><span class='line'><span class="nt">&lt;/p&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-09T12:50:12-04:00" pubdate data-updated="true">Sep 9<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/09/09/json-with-rails-booleans/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/09/09/json-with-rails-booleans/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/09/08/ng-messages-and-rails/" title="Previous Post: Realtime angular-rails form validations">&laquo; Realtime angular-rails form validations</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/09/11/protractor-testing/" title="Next Post: protractor testing">protractor testing &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/09/09/json-with-rails-booleans/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/09/09/json-with-rails-booleans/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

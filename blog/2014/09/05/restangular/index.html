@@ -1,0 +1,449 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Angular Backend Communication - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Options for working with a backend in Angular.js. AngularJS gives you freedom. Despite being labeled as a framework, I think of it
+more as a &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/09/05/restangular">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Angular Backend Communication</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-05T05:52:05-04:00" pubdate data-updated="true">Sep 5<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Options for working with a backend in Angular.js.<!--more--></p>
+
+<p>AngularJS gives you freedom. Despite being labeled as a framework, I think of it
+more as a collection of bits and pieces for hijacking HTML and less of a
+&lsquo;framework for building web applications&rsquo; like Ember. Coming from the
+convention-over-configuration mindset of Rails, Angular&rsquo;s blank canvas can be
+both refreshing and daunting: want to put all of your js in one file? Go ahead!
+In some ways, the lack of conventions can lead to unmaintainable messes.</p>
+
+<p>On the other hand, the lack of conventions means the developer can make choices
+that reflect both the needs of the project and, in some ways, the developer&rsquo;s own
+personality.</p>
+
+<h3>Back it up</h3>
+
+<p>As cool as directives are, almost every app is going to need a backend. The simplest
+choice is to use the internal <code>$http</code> and  <code>$q</code> services:</p>
+
+<figure class='code'><figcaption><span>postService.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;myApp&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="p">.</span><span class="nx">factory</span><span class="p">(</span><span class="s1">&#39;postService&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">$http</span><span class="p">,</span> <span class="nx">$q</span><span class="p">){</span>
+</span><span class='line'>  <span class="k">return</span> <span class="kd">function</span><span class="p">(</span><span class="nx">id</span><span class="p">){</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">defer</span> <span class="o">=</span> <span class="nx">$q</span><span class="p">.</span><span class="nx">defer</span><span class="p">();</span>
+</span><span class='line'>    <span class="nx">$http</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/my/api/posts/&#39;</span><span class="o">+</span><span class="nx">id</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">defer</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nx">defer</span><span class="p">.</span><span class="nx">promise</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Pretty basic, right? It&rsquo;s just a <code>get</code> request to the server with <code>$q</code> to handle
+the asynchronicity(!).</p>
+
+<p>But wait! This only handles one part of our RESTful <code>post</code>. What about <code>/posts</code>?
+We could make another service, but we&rsquo;ve already got enough <code>.js</code> files to worry about.
+Let&rsquo;s just extend <code>postService</code>:</p>
+
+<figure class='code'><figcaption><span>postService.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;myApp&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="p">.</span><span class="nx">factory</span><span class="p">(</span><span class="s1">&#39;postService&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">$http</span><span class="p">,</span> <span class="nx">$q</span><span class="p">){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">postService</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">all</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">defer</span> <span class="o">=</span> <span class="nx">$q</span><span class="p">.</span><span class="nx">defer</span><span class="p">();</span>
+</span><span class='line'>      <span class="nx">$http</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/my/api/posts&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">){</span>
+</span><span class='line'>        <span class="nx">defer</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">})</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">defer</span><span class="p">.</span><span class="nx">promise</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nx">one</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">id</span><span class="p">){</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">defer</span> <span class="o">=</span> <span class="nx">$q</span><span class="p">.</span><span class="nx">defer</span><span class="p">();</span>
+</span><span class='line'>      <span class="nx">$http</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/my/api/posts/&#39;</span><span class="o">+</span><span class="nx">id</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">){</span>
+</span><span class='line'>        <span class="nx">defer</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">})</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">defer</span><span class="p">.</span><span class="nx">promise</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nx">postService</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we&rsquo;ve got a <code>postService</code> object that can do <code>postService.all</code> and <code>postService.one(8)</code>.</p>
+
+<p>But wait! What about the <code>cud</code> in our Post CRUD? And what app has a <code>post</code> resource
+without <code>user</code> and <code>comment</code>, too?</p>
+
+<p>Rolling your own services to work with a backend is an interesting exercise, but
+seems way too tedious for any non-trivial application. Luckily angular has <code>$resource</code>
+to help out. <code>$resource</code> basically gives you an easy way to work with REST:</p>
+
+<figure class='code'><figcaption><span>$resourceDocs</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'>  <span class="p">{</span> <span class="s1">&#39;get&#39;</span><span class="o">:</span>    <span class="p">{</span><span class="nx">method</span><span class="o">:</span><span class="s1">&#39;GET&#39;</span><span class="p">},</span>
+</span><span class='line'>    <span class="s1">&#39;save&#39;</span><span class="o">:</span>   <span class="p">{</span><span class="nx">method</span><span class="o">:</span><span class="s1">&#39;POST&#39;</span><span class="p">},</span>
+</span><span class='line'>    <span class="s1">&#39;query&#39;</span><span class="o">:</span>  <span class="p">{</span><span class="nx">method</span><span class="o">:</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="nx">isArray</span><span class="o">:</span><span class="kc">true</span><span class="p">},</span>
+</span><span class='line'>    <span class="s1">&#39;remove&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">method</span><span class="o">:</span><span class="s1">&#39;DELETE&#39;</span><span class="p">},</span>
+</span><span class='line'>    <span class="s1">&#39;delete&#39;</span><span class="o">:</span> <span class="p">{</span><span class="nx">method</span><span class="o">:</span><span class="s1">&#39;DELETE&#39;</span><span class="p">}</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s an improvement, but what if our resource has just one or two non-RESTful endpoints?
+Or what if we need <code>PUT</code> requests? It&rsquo;s either back to <code>$http</code> and <code>$q</code> or
+configuring every <code>$resource</code> service we make to support <code>PUT</code>.</p>
+
+<h3>RESTangular</h3>
+
+<p><a href='https://github.com/mgonto/restangular'>Restangular</a> is a wicked little
+module that makes working with a backend painless. No more configuring promises or
+adding custom <code>PUT</code> support! There&rsquo;s really no need for big services anymore!</p>
+
+<figure class='code'><figcaption><span>routeExample.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;myApp&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="p">.</span><span class="nx">config</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">$stateProvider</span><span class="p">){</span>
+</span><span class='line'>  <span class="nx">$stateProvider</span><span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="s1">&#39;posts.one&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;/:id&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">resolve</span><span class="o">:</span> <span class="p">{</span> <span class="nx">Post</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">Restangular</span><span class="p">,</span> <span class="nx">$stateParams</span><span class="p">){</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">Restangular</span><span class="p">.</span><span class="nx">one</span><span class="p">(</span><span class="s1">&#39;posts&#39;</span><span class="p">,</span> <span class="nx">$stateParams</span><span class="p">.</span><span class="nx">id</span><span class="p">).</span><span class="nx">get</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}},</span>
+</span><span class='line'>    <span class="nx">templateUrl</span><span class="o">:</span> <span class="s1">&#39;ui/posts/index.html&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">controller</span><span class="o">:</span> <span class="s1">&#39;postController&#39;</span>
+</span><span class='line'>  <span class="p">})</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you&rsquo;ve setup a RESTful resource for <code>posts</code>, then Restangular will handle the
+rest! For example, if the <code>Post</code> from <code>resolve</code> is injected into the controller,
+it can easy be updated since it is a <code>Restangular</code> object:</p>
+
+<figure class='code'><figcaption><span>postController.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;myApp&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="p">.</span><span class="nx">controller</span><span class="p">(</span><span class="s1">&#39;postController&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">Post</span><span class="p">,</span> <span class="nx">$scope</span><span class="p">){</span>
+</span><span class='line'>  <span class="nx">$scope</span><span class="p">.</span><span class="nx">post</span> <span class="o">=</span> <span class="nx">Post</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">$scope</span><span class="p">.</span><span class="nx">updatePost</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">post</span><span class="p">){</span>
+</span><span class='line'>    <span class="c1">//an ng-submit attribute in the view</span>
+</span><span class='line'>    <span class="c1">//save comes from Restangular</span>
+</span><span class='line'>    <span class="nx">post</span><span class="p">.</span><span class="nx">save</span><span class="p">()</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The full <a href="https://github.com/mgonto/restangular">docs</a> explain how to use Restangular
+a lot better than I did here, but hopefully this gives decent explanation of why
+it&rsquo;s worth using.</p>
+
+<p>If you want complete controller over your backend communication, then maybe sticking
+with <code>$http</code> and <code>$q</code> and building services manually is better. But, if you&rsquo;d rather
+focus on shipping, Restangular is a job to work with and very actively developed.</p>
+
+<p>With <code>ui.router</code> and <code>Restangular</code>, AngularJS starts to feel more like a framework
+for building webapps and less like a collection of vaguely-related html-hijacking modules.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-05T05:52:05-04:00" pubdate data-updated="true">Sep 5<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/09/05/restangular/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/09/05/restangular/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/08/22/angular-testing/" title="Previous Post: angular testing">&laquo; angular testing</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/09/08/ng-messages-and-rails/" title="Next Post: Realtime angular-rails form validations">Realtime angular-rails form validations &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/09/05/restangular/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/09/05/restangular/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Setup on Digital Ocean - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="How to setup and get a rails app on digital ocean. Provision Server for Rails Clone server setup repo from book Bundle install. Generate password and &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/03/28/setup-on-digital-ocean">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Setup on Digital Ocean</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-28T04:14:31-04:00" pubdate data-updated="true">Mar 28<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>How to setup and get a rails app on digital ocean.<!--more--></p>
+
+<h2>Provision Server for Rails</h2>
+
+
+<p>Clone <a href="https://github.com/TalkingQuickly/rails-server-template">server setup repo</a> from book</p>
+
+<p>Bundle install.</p>
+
+<p>Generate password and put in deploy.json</p>
+
+<p>Add sshkey to deploy.json</p>
+
+<p>Create an ubuntu 12.04 box on DO</p>
+
+<p>ssh into the box and add my ssh key: <code>cat ~/.ssh/id_rsa.pub | ssh root@yourserverip "cat &gt;&gt; ~/.ssh/authorized_keys"</code></p>
+
+<p>skip to here if ssh w/digitalocean is setup:</p>
+
+<p>install chef: <code>bundle exec knife solo prepare root@serverip</code></p>
+
+<p>This makes a file <code>/nodes/serverip.json</code></p>
+
+<p>Copy contents from book example into <code>.json file</code>. Change username/pw for monit. Tell the server which rubies you want installed. Set pw for postgres. NB: this script creates a user <code>deploy</code> on the box.</p>
+
+<p>Run <code>bundle exec knife solo cook root@serverip</code> and wait while it sets up the server for Rails, postgres and redis. Go do something else. bunch of password prompts.</p>
+
+<p>If errors on <code>knife solo cook</code>, note the command and run it on the server &ndash; returns better error message. Had to change curl permissions with chmod.</p>
+
+<p>verify that it worked <code>ssh deploy@serverip</code></p>
+
+<p>If there are ssh errors check the logs with root at <code>/var/log/auth.log</code></p>
+
+<p>Done! Ready for capistrano</p>
+
+<h2>Capistrano</h2>
+
+
+<p>Need to fix the ruby version on the server?</p>
+
+<p>SSH into the server and <code>rbenv install --list</code> for a list of rubies, then <code>rbenv install 2.0.0-p247</code> or whatever is needed for the app and let it run.</p>
+
+<p>Run <code>rbenv rehash</code> after installing, then use <code>rbenv global 2.0.0-p247</code> to set the ruby -v.</p>
+
+<p>Must use <code>gem install bundler</code> to install bundler manually for each ruby installed.</p>
+
+<p>Generate a public key for <code>deploy</code> and <a href="https://help.github.com/articles/generating-ssh-keys">link it</a> to github&rsquo;s <code>deploy keys</code>.</p>
+
+<p>If ssh-add won&rsquo;t run, try <a href="https://coderwall.com/p/rdi_wq">this</a>  <code>eval $(ssh-agent)</code></p>
+
+<p>Remove nginx default page at <code>/etc/nginx/</code> and run <code>nginx -s reload</code></p>
+
+<p>Add these gems to the rails app:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gem 'capistrano', '~&gt;3.0.1' 
+</span><span class='line'>
+</span><span class='line'>#railsspecificcapistranofunctions
+</span><span class='line'>gem 'capistrano-rails', '~&gt;1.1.0'
+</span><span class='line'>
+</span><span class='line'>#integratebundlerwithcapistrano
+</span><span class='line'>gem 'capistrano-bundler'
+</span><span class='line'>
+</span><span class='line'>#ifyouareusingRbenv
+</span><span class='line'>gem 'capistrano-rbenv', "~&gt;2.0"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run <code>bundle exec cap install</code></p>
+
+<p>Copy the lib/capistrano files from sample repo <a href="https://github.com/TalkingQuickly/capistrano-3-rails-template">here</a>.</p>
+
+<p>with errors like:</p>
+
+<p>Could not find a JavaScript runtime. See <a href="https://github.com/sstephenson/execjs">https://github.com/sstephenson/execjs</a> for a list of available runtimes. (ExecJS::RuntimeUnavailable)</p>
+
+<p> sudo apt-get install nodejs</p>
+
+<p> [47efed43]     /etc/init.d/unicorn_angularails_production: 16: kill:
+DEBUG [47efed43]    No such process
+DEBUG [47efed43]
+DEBUG [47efed43]    Couldn&rsquo;t reload, starting &lsquo;cd /home/deploy/apps/angularails_production/current;  bundle exec unicorn -D -c /home/deploy/apps/angularails_production/shared/config/unicorn.rb -E production&rsquo; instead
+DEBUG [47efed43]    master failed to start, check stderr log for details
+cap aborted!</p>
+
+<p>uncomment rubyracer in gemfile, add gem unicorn</p>
+
+<p>I, [2014-03-30T06:54:30.926541 #1119]  INFO &mdash; : Refreshing Gem list
+I, [2014-03-30T06:54:32.412769 #1119]  INFO &mdash; : unlinking existing socket=/tmp/unicorn.angularails_production.sock
+I, [2014-03-30T06:54:32.413053 #1119]  INFO &mdash; : listening on addr=/tmp/unicorn.angularails_production.sock fd=11
+E, [2014-03-30T06:54:32.533681 #1119] ERROR &mdash; : Permission denied &ndash; /home/deploy/apps/angularails_production/releases/20140330105359/config/database.yml (Errno::EACCES)</p>
+
+<p>20140330110007</p>
+
+<p>nproblem with database.yml user?</p>
+
+<p>create database,</p>
+
+<p>create user,</p>
+
+<p>add database and user info to database.yml in /shared/config</p>
+
+<p>run rake tasks like this on server:</p>
+
+<p><code>RAILS_ENV=production</code></p>
+
+<p>set global variables like for paperclip / s3 and apis</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-28T04:14:31-04:00" pubdate data-updated="true">Mar 28<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/03/28/setup-on-digital-ocean/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/03/28/setup-on-digital-ocean/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/16/building-a-rake-task/" title="Previous Post: Building a Rake Task">&laquo; Building a Rake Task</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/04/25/angular-on-rails-part-1/" title="Next Post: Angular on Rails part 1">Angular on Rails part 1 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/03/28/setup-on-digital-ocean/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/03/28/setup-on-digital-ocean/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

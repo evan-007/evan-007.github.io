@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Everyday Rspec Notes - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Notes and tricks from the Rspec Rails book. Setup dur bundle exec rails generate rspec:install optional: .rspec1
+--format documentation Stop rails &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/01/10/everyday-rspec-notes">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Everyday Rspec Notes</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-10T07:34:17-05:00" pubdate data-updated="true">Jan 10<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Notes and tricks from the Rspec Rails book.</p>
+
+<!--more-->
+
+
+
+
+<h2>Setup</h2>
+
+
+<p>dur <code>bundle exec rails generate rspec:install</code></p>
+
+<p>optional:</p>
+
+<figure class='code'><figcaption><span>.rspec</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>--format documentation</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Stop rails from generating tests that I&rsquo;ll just delete:</p>
+
+<figure class='code'><figcaption><span>config/application.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">config</span><span class="o">.</span><span class="n">generators</span> <span class="k">do</span> <span class="o">|</span><span class="n">g</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">g</span><span class="o">.</span><span class="n">test_framework</span> <span class="ss">:rspec</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">fixtures</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="c1">#FactoryGirl handles these, not unit/test</span>
+</span><span class='line'>    <span class="n">view_specs</span><span class="p">:</span> <span class="kp">false</span> <span class="c1">#don&#39;t need, use features tests intead</span>
+</span><span class='line'>    <span class="n">helper_specs</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span> <span class="c1">#depends on app/needs</span>
+</span><span class='line'>    <span class="n">routing_specs</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span> <span class="c1">#depends on app/needs</span>
+</span><span class='line'>    <span class="n">controller_specs</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">request_specs</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">g</span><span class="o">.</span><span class="n">fixture_replacement</span> <span class="ss">:factory_girl</span><span class="p">,</span> <span class="ss">dir</span><span class="p">:</span> <span class="s2">&quot;spec/factories&quot;</span> <span class="c1">#this is why fixtures is false</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Cloning:</p>
+
+<p>Instead of db:migrate and for development and test dbs, use <code>rake db:test:clone</code>. Needs to be run everytime there is a migration. Or just chain them <code>rake db:migrate db:test:clone</code>. Maybe add that to a shell alias?</p>
+
+<h2>Model Tests</h2>
+
+
+<p>Models are the core of the application: test their validations (pass <i>and</i> fail), as well as their class and instance variables.</p>
+
+<p>Writing tests: first write the expectations in a group. Make them readable! Put the model tests in folder whose location is analagous to <code>app/models</code>, i.e. <code>rspec/models</code>.</p>
+
+<p>Flip tests from <code>to</code> to <code>to_not</code> to double check if concerned about false positives.</p>
+
+<p>what is :scope??</p>
+
+<p>Use <code>eq</code> instead of <code>==</code> in rspec.</p>
+
+<p>You can use <code>expect(user.authenticate).to be</code> or <code>expect(user.authenticate).to_not be</code> to check for the existance of something. Deep test.</p>
+
+<p>Testing authentication with b-crypt: b-crypt has a method <code>authenticate</code> that takes a string <code>(password)</code>. So you can use <code>user.authenticate("correctpassword")</code> or <code>user.authenticate("wrongpw")</code> to validate in tests. Read the <a href="http://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html">api docs</a>.</p>
+
+<p>You can reuse a form for different actions and change certain parts of it like this:</p>
+
+<figure class='code'><figcaption><span>_form.html.erb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% if </span><span class="vi">@user</span><span class="o">.</span><span class="n">new_record?</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= f.submit &quot;Register&quot; %&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% else %&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= f.submit &quot;Update Profile&quot; %&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That way the submit button has different values depending on if it&rsquo;s being used in Users#edit or Users#new. Cool.</p>
+
+<p>To add a migration for belongs_to: user <code>bin/rails g migration add_user_id_to_tickets user:references</code></p>
+
+<p>To easily migrate and test prepare, look at page 189.</p>
+
+<p>This is how to handle associations in rspec features tests:</p>
+
+<figure class='code'><figcaption><span>your_integration_test.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">feature</span> <span class="s2">&quot;deleting tickets&quot;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">let!</span><span class="p">(</span><span class="ss">:project</span><span class="p">)</span> <span class="p">{</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:project</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'>  <span class="n">let!</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">{</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'>  <span class="n">let!</span><span class="p">(</span><span class="ss">:ticket</span><span class="p">)</span> <span class="p">{</span> <span class="no">FactoryGirl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:ticket</span><span class="p">,</span> <span class="ss">project</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span> <span class="ss">user</span><span class="p">:</span> <span class="n">user</span><span class="p">)</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h2>Authorization</h2>
+
+
+<p>Authentication is proving who the user is, authorization is setting what the user can and can&rsquo;t do.</p>
+
+<p>Adding different variations on a factory is done like this, in the same block:</p>
+
+<figure class='code'><figcaption><span>user_factory.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">FactoryGirl</span><span class="o">.</span><span class="n">define</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">factory</span> <span class="ss">:user</span> <span class="k">do</span>
+</span><span class='line'>      <span class="nb">name</span> <span class="s2">&quot;user&quot;</span>
+</span><span class='line'>      <span class="n">email</span> <span class="s2">&quot;user@internet.com&quot;</span>
+</span><span class='line'>      <span class="n">password</span> <span class="s2">&quot;password&quot;</span>
+</span><span class='line'>      <span class="n">password_confirmation</span> <span class="s2">&quot;password&quot;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">factory</span> <span class="ss">:admin_user</span><span class="o">.</span> <span class="k">do</span>
+</span><span class='line'>          <span class="n">admin</span> <span class="kp">true</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can make different kinds of rspec helpers, for different tests:</p>
+
+<figure class='code'><figcaption><span>spec/support/authentication_helpers.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">AuthenticationHelpers</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">sign_in_as!</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">visit</span> <span class="s1">&#39;/signin&#39;</span>
+</span><span class='line'>      <span class="n">fill_in</span> <span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
+</span><span class='line'>      <span class="n">fill_in</span> <span class="s2">&quot;Password&quot;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span>
+</span><span class='line'>      <span class="n">click_button</span> <span class="s2">&quot;Sign in&quot;</span>
+</span><span class='line'>      <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Signed in successfully.&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">RSpec</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">c</span><span class="o">.</span><span class="n">include</span> <span class="no">AuthenticationHelpers</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="ss">:feature</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">AuthHelpers</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">sign_in</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">session</span><span class="o">[</span><span class="ss">:user_id</span><span class="o">]</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">RSpec</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">c</span><span class="o">.</span><span class="n">include</span> <span class="no">AuthHelpers</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="ss">:controller</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before actions in a controller must be put in the right order to get the desired functionality:</p>
+
+<figure class='code'><figcaption><span>project_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="n">before_action</span> <span class="ss">:authorize_admin</span><span class="p">,</span> <span class="ss">except</span><span class="p">:</span> <span class="o">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">before_action</span> <span class="ss">:set_project</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:show</span><span class="p">,</span> <span class="ss">:edit</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>is different than:</p>
+
+<figure class='code'><figcaption><span>project_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="n">before_action</span> <span class="ss">:set_project</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:show</span><span class="p">,</span> <span class="ss">:edit</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span>
+</span><span class='line'>  <span class="n">before_action</span> <span class="ss">:authorize_admin</span><span class="p">,</span> <span class="ss">except</span><span class="p">:</span> <span class="o">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Which one gives the functionality you want? (helpers are defined as private methods in that same controller, or in the application_controller if they need to be used in other places.)</p>
+
+<h4>Hiding &#8220;stuff&#8221; from non-authorized users</h4>
+
+
+<p>Maybe the controller restricts non-authorized users from performing certain actions, but the links to those actions will still be in the view.</p>
+
+<p>Here&rsquo;s one way to do it:</p>
+
+<figure class='code'><figcaption><span>application_helper.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">admins_only</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">block</span><span class="o">.</span><span class="n">call</span> <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">try</span><span class="p">(</span><span class="ss">:admin?</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>(&amp;block)</code> means the method takes a block, so it can be used like this: <code>&lt;% admins_only do&gt;&lt;%= link_to "Top Secret!", secret_path %&gt;&lt;% end %&gt;</code> and then only admins will see the super secret links. Note that this also relies on the <code>current_user</code> method, which is another helper <code>application_controller.rb</code>.</p>
+
+<p>If the function is related to rendering views, put it in a helper file. If the method is going to be used in many places in the application (like in controllers), put it in <code>application_controller.rb</code> instead.</p>
+
+<h2>Namespacing for authorization</h2>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-10T07:34:17-05:00" pubdate data-updated="true">Jan 10<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/01/10/everyday-rspec-notes/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/01/10/everyday-rspec-notes/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/10/rails-4-in-action-goodies/" title="Previous Post: Rails 4 in Action Goodies">&laquo; Rails 4 in Action Goodies</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/01/16/building-a-rake-task/" title="Next Post: Building a Rake Task">Building a Rake Task &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/01/10/everyday-rspec-notes/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/01/10/everyday-rspec-notes/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

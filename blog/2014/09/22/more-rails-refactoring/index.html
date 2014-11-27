@@ -1,0 +1,588 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>More Rails Refactoring - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Refactoring a Rails Class to be more Metz-y: ideas from Sandy Metz&#8217; POODR in rails. Imagine a multi-user application with a messaging system &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/09/22/more-rails-refactoring">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">More Rails Refactoring</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-22T17:06:33-04:00" pubdate data-updated="true">Sep 22<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Refactoring a Rails Class to be more Metz-y: ideas from Sandy Metz&#8217; POODR in rails.</p>
+
+<!--more-->
+
+
+<p>Imagine a multi-user application with a messaging system that allows
+users to communicate with each other. One of the main issues is that there
+needs to be a way to restrict which users can message which users so that
+people aren&rsquo;t overrun with spam.</p>
+
+<p>One simple control is to only allow users who are <code>friends</code> to send each other messages.
+One way to implement this is to throw a <code>before_action</code> on <code>Messages#create</code>:</p>
+
+<figure class='code'><figcaption><span>messages_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MessagesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>  <span class="n">before_action</span> <span class="ss">:friend_check</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:create</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># bunch of stuff</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">friend_check</span>
+</span><span class='line'>      <span class="k">if</span> <span class="no">FriendVerifier</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">friend_check</span><span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:message</span><span class="o">][</span><span class="ss">:receiver_id</span><span class="o">]</span><span class="p">)</span> <span class="o">==</span> <span class="kp">false</span>
+</span><span class='line'>          <span class="n">render</span> <span class="ss">nothing</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">status</span><span class="p">:</span> <span class="mi">400</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>friend_verifier.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">FriendVerifier</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">friend_check</span>
+</span><span class='line'>    <span class="k">if</span> <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="vi">@sender_id</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="vi">@receiver_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span> <span class="o">||</span> <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="vi">@receiver_id</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="vi">@sender_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>friend_check</code> queries the DB, returns <code>true</code> if the users are friends and the controller
+will either let the action continue or <code>return status: 400</code>, which is what our imaginary angular API can
+work with.</p>
+
+<p>But! What happens when users can now message users who are NOT friends, but who have
+posted <code>Postings</code> asking for help?</p>
+
+<p>The controller <code>before_action</code> gets more arguments:</p>
+
+<figure class='code'><figcaption><span>message_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="c1">#omitted</span>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">can_message?</span>
+</span><span class='line'>      <span class="k">if</span> <span class="no">FriendVerifier</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:message</span><span class="o">][</span><span class="ss">:receiver_id</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>         <span class="vi">@reply</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:posting_id</span><span class="o">]</span><span class="p">)</span> <span class="o">==</span> <span class="kp">false</span>
+</span><span class='line'>        <span class="n">render</span> <span class="ss">nothing</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">status</span><span class="p">:</span> <span class="mi">401</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And <code>FriendVerifier</code> gets bigger:</p>
+
+<figure class='code'><figcaption><span>friend_verifier.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">FriendVerifier</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="n">reply</span><span class="p">,</span> <span class="o">*</span><span class="nb">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">reply</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span>
+</span><span class='line'>      <span class="k">if</span> <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="n">id1</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="n">id2</span><span class="p">)</span><span class="o">.</span><span class="n">first</span> <span class="o">||</span> <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="n">id2</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="n">id1</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>        <span class="kp">true</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="kp">false</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">reply</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+</span><span class='line'>      <span class="k">if</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">id2</span><span class="p">)</span><span class="o">.</span><span class="n">postings</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>        <span class="kp">true</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="kp">false</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&rsquo;s pretty awful and unreadable. One approach could be to have a master <code>MessageGuard</code> class
+that then calls the appropriate validator classes:</p>
+
+<figure class='code'><figcaption><span>message_guard.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MessageGuard</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="n">reply</span><span class="p">,</span> <span class="o">*</span><span class="nb">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">reply</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span>
+</span><span class='line'>      <span class="no">FriendVerifier</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">reply</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+</span><span class='line'>      <span class="no">PostingVerifier</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">id2</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&rsquo;s okay, but it creates two new classes <code>FriendVerifier</code> and <code>PostingVerifier</code>.
+Are they really necessary, or can the scope of message verification be handled by
+just one <code>Verifier</code> class?</p>
+
+<figure class='code'><figcaption><span>verifier.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Verifier</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">friends?</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="n">id1</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="n">id2</span><span class="p">)</span><span class="o">.</span><span class="n">first</span> <span class="o">||</span>
+</span><span class='line'>        <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="n">id2</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="n">id1</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">active_post?</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">posting_id</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">postings</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="n">posting_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">message_guard</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="n">reply</span><span class="p">,</span> <span class="o">*</span><span class="n">posting_id</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">reply</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span>
+</span><span class='line'>      <span class="nb">self</span><span class="o">.</span><span class="n">friends?</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">reply</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+</span><span class='line'>      <span class="nb">self</span><span class="o">.</span><span class="n">active_post?</span><span class="p">(</span><span class="n">id1</span><span class="p">,</span> <span class="n">posting_id</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I like this design: handling all of the verifications in one place and then
+refactoring them into smaller classes if/when that&rsquo;s needed. However, there is still
+one big problem with <code>Verifier</code>: the way it and its methods take arguments is real messy.</p>
+
+<p>The class could be initialized with all 4 possible arguments, but there may be
+cases when only the <code>friends?</code> method is needed.</p>
+
+<p>One way is to do a Sandy Metz-style hash of arguments to initialize the class and also
+rename the arguments so that they are a bit more meaningful:</p>
+
+<figure class='code'><figcaption><span>verifier.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Verifier</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:id1</span><span class="p">,</span> <span class="ss">:id2</span><span class="p">,</span> <span class="ss">:reply</span><span class="p">,</span> <span class="ss">:posting_id</span><span class="p">,</span> <span class="ss">:type</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Sandy Metz style!</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@sender_id</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="ss">:sender_id</span><span class="o">]</span>
+</span><span class='line'>    <span class="vi">@receiver_id</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="ss">:receiver_id</span><span class="o">]</span>
+</span><span class='line'>    <span class="vi">@reply</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="ss">:reply</span><span class="o">]</span>
+</span><span class='line'>    <span class="vi">@posting_id</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="ss">:posting_id</span><span class="o">]</span>
+</span><span class='line'>    <span class="vi">@type</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="ss">:type</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">friends?</span>
+</span><span class='line'>    <span class="k">if</span> <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="vi">@sender_id</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="vi">@receiver_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span> <span class="o">||</span>
+</span><span class='line'>        <span class="no">Friendship</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="vi">@receiver_id</span><span class="p">,</span> <span class="n">friend_id</span><span class="p">:</span> <span class="vi">@sender_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">active_post?</span>
+</span><span class='line'>    <span class="k">if</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="vi">@receiver_id</span><span class="p">)</span><span class="o">.</span><span class="n">postings</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="vi">@posting_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">message_guard</span>
+</span><span class='line'>  <span class="c1"># use strings, not booleans because JSON input</span>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@reply</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span>
+</span><span class='line'>      <span class="nb">self</span><span class="o">.</span><span class="n">friends?</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="vi">@reply</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+</span><span class='line'>      <span class="nb">self</span><span class="o">.</span><span class="n">active_post?</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now <code>Verifier</code> doesn&rsquo;t depend on being initialized with 4 different args and thus
+is more reusable (can use <code>#friends?</code> without needing <code>args[:posting_id]</code> and
+  hopefully much more readable than the original version)!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-22T17:06:33-04:00" pubdate data-updated="true">Sep 22<span>nd</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/09/22/more-rails-refactoring/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/09/22/more-rails-refactoring/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/09/11/protractor-testing/" title="Previous Post: protractor testing">&laquo; protractor testing</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/11/16/ember-devise-simple-auth/" title="Next Post: Ember devise simple auth">Ember devise simple auth &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/09/22/more-rails-refactoring/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/09/22/more-rails-refactoring/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

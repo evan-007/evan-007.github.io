@@ -1,0 +1,480 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ember Devise Simple Auth - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Setting up Ember Simple Auth Devise for registrations and auto-login. Ember simple auth is a great little library for making ember cli aps work with &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/11/16/ember-devise-simple-auth">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Ember Devise Simple Auth</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-16T20:23:15-05:00" pubdate data-updated="true">Nov 16<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Setting up Ember Simple Auth Devise for registrations and auto-login.<!--more--></p>
+
+<p><a href="https://github.com/simplabs/ember-simple-auth/tree/master/packages/ember-simple-auth-devise">Ember simple auth</a> is a great little library for making ember cli aps work with Devise. It&rsquo;s very basic and so makes no assumptions about how to register accounts &ndash;> it only cares about setting sessions. Here&rsquo;s how I got signup + login after signing up to work (although a bit hacky and not production ready).</p>
+
+<p>First, follow the tutorial on Ember Simple Auth&rsquo;s github to get sessions working.</p>
+
+<p>Now, we want to add user signup + create a session after the registration.</p>
+
+<p>If you namespaced your rails API, you may need to extend devise&rsquo;s routing to fit within your namespace, since Ember simple auth asks you to work in the basic namespace.</p>
+
+<figure class='code'><figcaption><span>routes.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">devise_for</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">controllers</span><span class="p">:</span> <span class="p">{</span> <span class="ss">sessions</span><span class="p">:</span> <span class="s1">&#39;sessions&#39;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="c1"># hack for ember data</span>
+</span><span class='line'>  <span class="n">devise_scope</span> <span class="ss">:user</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">post</span> <span class="s1">&#39;api/v1/users&#39;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s1">&#39;registrations#create&#39;</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:whatever</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, create a new controller that inherits from <code>Devise::RegistrationsController</code>
+and customize <code>create</code> to return the info needed to make an auth request (most of this is just from <a href="https://github.com/plataformatec/devise/blob/master/app/controllers/devise/registrations_controller.rb">devise&rsquo;s docs</a>)</p>
+
+<figure class='code'><figcaption><span>registrations_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">RegistrationsController</span> <span class="o">&lt;</span> <span class="ss">Devise</span><span class="p">:</span><span class="ss">:RegistrationsController</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>    <span class="n">build_resource</span><span class="p">(</span><span class="n">sign_up_params</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">resource_saved</span> <span class="o">=</span> <span class="n">resource</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>    <span class="k">yield</span> <span class="n">resource</span> <span class="k">if</span> <span class="nb">block_given?</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">resource_saved</span>
+</span><span class='line'>      <span class="k">if</span> <span class="n">resource</span><span class="o">.</span><span class="n">active_for_authentication?</span>
+</span><span class='line'>        <span class="n">set_flash_message</span> <span class="ss">:notice</span><span class="p">,</span> <span class="ss">:signed_up</span> <span class="k">if</span> <span class="n">is_flashing_format?</span>
+</span><span class='line'>        <span class="n">sign_up</span><span class="p">(</span><span class="n">resource_name</span><span class="p">,</span> <span class="n">resource</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">render</span> <span class="ss">json</span><span class="p">:</span> <span class="p">{</span><span class="ss">user</span><span class="p">:</span> <span class="p">{</span><span class="ss">email</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="ss">password</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">id</span><span class="p">}}</span>
+</span><span class='line'>      <span class="k">else</span>
+</span><span class='line'>        <span class="n">set_flash_message</span> <span class="ss">:notice</span><span class="p">,</span> <span class="ss">:&quot;signed_up_but_</span><span class="si">#{</span><span class="n">resource</span><span class="o">.</span><span class="n">inactive_message</span><span class="si">}</span><span class="ss">&quot;</span> <span class="k">if</span> <span class="n">is_flashing_format?</span>
+</span><span class='line'>        <span class="n">expire_data_after_sign_in!</span>
+</span><span class='line'>        <span class="n">respond_with</span> <span class="n">resource</span><span class="p">,</span> <span class="ss">location</span><span class="p">:</span> <span class="n">after_inactive_sign_up_path_for</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="n">clean_up_passwords</span> <span class="n">resource</span>
+</span><span class='line'>      <span class="vi">@validatable</span> <span class="o">=</span> <span class="n">devise_mapping</span><span class="o">.</span><span class="n">validatable?</span>
+</span><span class='line'>      <span class="k">if</span> <span class="vi">@validatable</span>
+</span><span class='line'>        <span class="vi">@minimum_password_length</span> <span class="o">=</span> <span class="n">resource_class</span><span class="o">.</span><span class="n">password_length</span><span class="o">.</span><span class="n">min</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>      <span class="n">render</span> <span class="ss">:json</span><span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:token</span><span class="o">=&gt;</span><span class="n">resource</span><span class="o">.</span><span class="n">authentication_token</span><span class="p">,</span> <span class="ss">:email</span><span class="o">=&gt;</span><span class="n">resource</span><span class="o">.</span><span class="n">email</span> <span class="p">},</span> <span class="ss">:status</span><span class="o">=&gt;</span><span class="mi">201</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The important part is in the first <code>if</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">if</span> <span class="n">resource_saved</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">resource</span><span class="o">.</span><span class="n">active_for_authentication?</span>
+</span><span class='line'>    <span class="n">set_flash_message</span> <span class="ss">:notice</span><span class="p">,</span> <span class="ss">:signed_up</span> <span class="k">if</span> <span class="n">is_flashing_format?</span>
+</span><span class='line'>    <span class="n">sign_up</span><span class="p">(</span><span class="n">resource_name</span><span class="p">,</span> <span class="n">resource</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">json</span><span class="p">:</span> <span class="p">{</span><span class="ss">user</span><span class="p">:</span> <span class="p">{</span><span class="ss">email</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="ss">password</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">id</span><span class="p">}}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We&rsquo;re forcing devise to return the user&rsquo;s details in json for ember <code>render json: {user: {email: resource.email, password: resource.password, id: resource.id}}</code>.</p>
+
+<p>Bouncing back the user&rsquo;s password is a terrible idea, don&rsquo;t do this except for demo purposes!</p>
+
+<h1>Setting up ember</h1>
+
+<p>Ember CLI will do all the hard work <code>ember g resource user email:string password:string passwordConfirmation:string</code>. That gets the model, now do <code>ember g route users/new</code>.</p>
+
+<p>In the route throw a hook to create a new user and then drop a form partial in the template:</p>
+
+<figure class='code'><figcaption><span>app/routes/users/new.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">Ember</span><span class="p">.</span><span class="nx">Route</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">model</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">store</span><span class="p">.</span><span class="nx">createRecord</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>app/templates/users/-form.hbs</p>
+
+<figure class='code'><figcaption><span>app/routes/users/new.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="o">&lt;</span><span class="nx">h2</span><span class="o">&gt;</span><span class="nx">Create</span> <span class="nx">an</span> <span class="nx">Account</span><span class="o">&lt;</span><span class="err">/h2&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">form</span> <span class="p"></span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="nx">label</span><span class="o">&gt;</span><span class="nx">Email</span><span class="o">&lt;</span><span class="err">/label&gt;</span>
+</span><span class='line'>    <span class="p"></span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="nx">label</span><span class="o">&gt;</span><span class="nx">Password</span><span class="o">&lt;</span><span class="err">/label&gt;</span>
+</span><span class='line'>    <span class="p"></span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="nx">label</span><span class="o">&gt;</span><span class="nx">Password</span> <span class="nx">Confirmation</span><span class="o">&lt;</span><span class="err">/label&gt;</span>
+</span><span class='line'>    <span class="p"></span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;Sign Up!&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="err">/form&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>app/templates/users/new.hbs</p>
+
+<figure class='code'><figcaption><span>app/routes/users/new.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'>  <span class="p"></span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, the tricky part: getting the ember controller to register the user and then authenticate them: <code>ember g controller users/new</code>.</p>
+
+<figure class='code'><figcaption><span>app/controllers/users/new.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">Ember</span><span class="p">.</span><span class="nx">ObjectController</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">authenticator</span><span class="o">:</span> <span class="s1">&#39;simple-auth-authenticator:devise&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">actions</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">save</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">_this</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">).</span><span class="nx">save</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">resp</span><span class="p">){</span>
+</span><span class='line'>         <span class="nx">_this</span><span class="p">.</span><span class="nx">transitionToRoute</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nx">_this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;session&#39;</span><span class="p">).</span><span class="nx">authenticate</span><span class="p">(</span><span class="s1">&#39;simple-auth-authenticator:devise&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>          <span class="nx">identification</span><span class="o">:</span> <span class="nx">resp</span><span class="p">.</span><span class="nx">_data</span><span class="p">.</span><span class="nx">email</span><span class="p">,</span>
+</span><span class='line'>          <span class="nx">password</span><span class="o">:</span> <span class="nx">resp</span><span class="p">.</span><span class="nx">_data</span><span class="p">.</span><span class="nx">password</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So here the user is saved and then we reroute to the app&rsquo;s index on success.
+Remember that rails is returning all the data we need to authenticate the user, so
+we simply pass in the required params to <code>.authenticate</code>. Most of this came from simple auth&rsquo;s <a href="https://github.com/simplabs/ember-simple-auth/issues?page=1&amp;q=devise">issue tracker</a> but I can&rsquo;t find the exact link again. Because we&rsquo;re using ember data, the server response is stuffed in <code>_data</code>.</p>
+
+<p>This is a terrible implementation for many reasons, including returning the user&rsquo;s auth info (maybe https helps out, but still it&rsquo;s a bad idea) and making a second http call AFTER the user is registered to authenticate them. Ideally, we could just return the token from devise and set the appropriate cookie/headers in Ember, but I&rsquo;m not sure how to do that with simple auth yet.</p>
+
+<p>Don&rsquo;t do this in production.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-16T20:23:15-05:00" pubdate data-updated="true">Nov 16<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/11/16/ember-devise-simple-auth/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/11/16/ember-devise-simple-auth/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/09/22/more-rails-refactoring/" title="Previous Post: More Rails refactoring">&laquo; More Rails refactoring</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/11/16/ember-devise-simple-auth/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/11/16/ember-devise-simple-auth/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,546 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Angular Overview - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Notes on angular Starting out Add angular.js to html and create the app module: app.js1
+var app = angular.module('appname', []); the [] is where &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/05/17/angular-overview">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Angular Overview</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-17T08:00:00-04:00" pubdate data-updated="true">May 17<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Notes on angular<!--more--></p>
+
+<h2>Starting out</h2>
+
+
+<p>Add angular.js to html and create the app module:</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var app = angular.module('appname', []);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>the <code>[]</code> is where dependencies go.</p>
+
+<p>Then add it to the page:</p>
+
+<figure class='code'><figcaption><span>index.html</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;html ng-app='appname'&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we&rsquo;re ready!</p>
+
+<p>Controllers:</p>
+
+<p>Get data on to the page! First, put app in closure and then add controller:</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;appname&#39;</span><span class="p">,</span> <span class="p">[]);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">app</span><span class="p">.</span><span class="nx">controller</span><span class="p">(</span><span class="s1">&#39;YourController&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">product</span> <span class="o">=</span> <span class="nx">gem</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">gem</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;This is just a js object&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">price</span><span class="o">:</span> <span class="mf">2.95</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">description</span><span class="o">:</span> <span class="s1">&#39;blablabal&#39;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">})();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Controllers are in CapitalCase and always have the word &lsquo;controller&rsquo;. When called in the view, give them an alias:<code>&lt;div ng-controller="MyController as store"&gt;</code></p>
+
+<h2>Some directives</h2>
+
+
+<p>ng-show</p>
+
+<p>when used with an expression, will not show if expression is <code>false</code> or not present. ie: <code>available: false</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;div ng-show='store.thing.available'&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This div will not show because the attribute is false.</p>
+
+<p>ng-hide
+Use with boolean attributes, like ng-show, hides when <code>true</code>.</p>
+
+<p>ng-repeat
+iterates over an array.</p>
+
+<p>ng-src
+show images when path is in an attribute: <code>&lt;img ng-src= /&gt;</code></p>
+
+<p>ng-click
+use with href to do stuff on click: <code>&lt;a href ng-click="tab =1"&gt;link&lt;/a&gt;</code> then can see by inserting the expression &#8220;&#8220;&#8220; somewhere.</p>
+
+<p>ng-init
+use to set a value for an expression on page load. with the above ng-click example, add something like <code>&lt;secion ng-init="tab = 1"&gt;</code>. Should probably put this logic in a controller though!</p>
+
+<p>ng-class
+takes lots of arguments, read up on it. <code>&lt;li ng-class="{ active:tab === 1 }"&gt;</code></p>
+
+<h2>Filters</h2>
+
+
+<p>Just like unix, use | to pass the expression on the left to the filter on the right. <code>
+or</code>
+also, <code>uppercase</code> <code>lowercase</code>,
+Limit can be used either with an expression <code>limitTo:8</code>, or to limit the number of items in an array when used with <code>ng-repeat</code></p>
+
+<p>order: <code>orderBy:'-price'</code>, without minus it goes in asc order.</p>
+
+<h2>Forms</h2>
+
+
+<p>use the ng-model directive on form elements to create two-way binding for live previews: <code>&lt;textarea ng-model="review.body"&gt;&lt;/textarea&gt;</code> then preview with  somewhere else on page.</p>
+
+<p>ng-model will work with checkboxes to produce a boolean, as well as select or radio buttons to set a value.</p>
+
+<p>Initialize the form with a controller!</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">app</span><span class="p">.</span><span class="nx">controller</span><span class="p">(</span><span class="s1">&#39;ReviewController&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">review</span> <span class="o">=</span> <span class="p">{};</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ng-submit is used to post the form: it calls a function on submit: <code>&lt;form name="reviewForm" ng-controller="ReviewController as reviewCtrl" ng-submit="reviewCtrl.addReview(product)"&gt;</code>
+NOTE: ng-submit goes in the FORM tags not in the button tags.</p>
+
+<p>then in the controller:</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">app</span><span class="p">.</span><span class="nx">controller</span><span class="p">(</span><span class="s1">&#39;ReviewController&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">review</span> <span class="o">=</span> <span class="p">{};</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">addReview</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">product</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">product</span><span class="p">.</span><span class="nx">reviews</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">review</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h5>Validations</h5>
+
+
+<p>Turn off browser validations: <code>&lt;form name="reviewForm" ng-controller="ReviewController as reviewCtrl" ng-submit="reviewCtrl.addReview(product)" novalidate&gt;</code></p>
+
+<p>then add <code>required</code> to fields:<code>&lt;input type="email" class="form-control" ng-model="reviewCtrl.review.email" required /&gt;&lt;br&gt;</code></p>
+
+<p>then add some debug code to check if valid (call form&rsquo;s name): <code>&lt;div&gt;Review form is &lt;/div&gt;</code> $valid is an internal angular goodie</p>
+
+<p>To stop invalid form submission use valid with ng-submit: &#8220;`<form name="reviewForm" ng-controller="ReviewController as reviewCtrl" ng-submit="reviewForm.$valid && reviewCtrl.addReview(product)" novalidate></p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">input</span> <span class="kd">with</span> <span class="nx">nothing</span><span class="o">:</span> <span class="kr">class</span> <span class="nx">is</span> <span class="nx">ng</span><span class="o">-</span><span class="nx">pristine</span><span class="p">.</span> <span class="kd">with</span> <span class="nx">text</span><span class="o">:</span> <span class="nx">ng</span><span class="o">-</span><span class="nx">dirty</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">h2</span><span class="o">&gt;</span><span class="nx">Angular</span> <span class="nx">Pieces</span><span class="o">&lt;</span><span class="err">/h2&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Controllers</span><span class="o">:</span> <span class="nx">these</span> <span class="nx">are</span> <span class="nx">responsible</span> <span class="nx">to</span> <span class="nx">bringing</span> <span class="nx">data</span> <span class="nx">to</span> <span class="nx">from</span> <span class="nx">the</span> <span class="nx">models</span> <span class="nx">to</span> <span class="nx">the</span> <span class="nx">view</span><span class="p">.</span> <span class="nx">They</span> <span class="nx">often</span> <span class="nx">have</span> <span class="nx">a</span> <span class="nx">lot</span> <span class="nx">more</span> <span class="nx">logic</span> <span class="k">in</span> <span class="nx">them</span> <span class="nx">than</span> <span class="nx">controllers</span> <span class="k">in</span> <span class="nx">Rails</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Modules</span><span class="o">:</span> <span class="nx">these</span> <span class="nx">hold</span> <span class="nx">reuseable</span> <span class="nx">code</span><span class="p">.</span> <span class="nx">They</span> <span class="nx">are</span> <span class="nx">a</span> <span class="nx">higher</span> <span class="nx">level</span> <span class="nx">abstraction</span> <span class="nx">than</span> <span class="nx">controllers</span><span class="o">:</span> <span class="nx">modules</span> <span class="nx">contain</span> <span class="nx">controllers</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Scopes</span><span class="o">:</span> <span class="nx">the</span> <span class="s1">&#39;execution context for expressions&#39;</span><span class="p">.</span> <span class="nx">the</span> <span class="nx">glue</span> <span class="nx">between</span> <span class="nx">the</span> <span class="nx">application</span> <span class="nx">and</span> <span class="nx">the</span> <span class="nx">view</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">the</span> <span class="err">```</span><span class="nx">$rootscope</span><span class="err">```</span> <span class="nx">is</span> <span class="nx">the</span> <span class="nx">top</span> <span class="nx">level</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">application</span><span class="p">,</span> <span class="nx">where</span> <span class="err">```</span><span class="nx">ng</span><span class="o">-</span><span class="nx">app</span><span class="err">```</span> <span class="nx">is</span> <span class="nx">bound</span><span class="p">.</span> <span class="nx">Anything</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">root</span> <span class="nx">scope</span> <span class="nx">can</span> <span class="nx">be</span> <span class="nx">accessed</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">sub</span> <span class="nx">areas</span><span class="p">.</span> <span class="nx">So</span> <span class="nx">when</span> <span class="nx">you</span> <span class="k">do</span> <span class="k">this</span><span class="o">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>html index.html
+<doctype html></p>
+
+<pre><code>&lt;html ng-app='myApp'&gt;
+</code></pre>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">The</span> <span class="nx">root</span> <span class="nx">scope</span> <span class="nx">is</span> <span class="nx">the</span> <span class="nx">entire</span> <span class="nx">page</span><span class="p">.</span> <span class="nx">So</span><span class="p">,</span> <span class="nx">when</span> <span class="nx">you</span> <span class="nx">bind</span> <span class="nx">a</span> <span class="nx">controller</span> <span class="nx">to</span> <span class="nx">a</span> <span class="nx">dom</span> <span class="nx">element</span><span class="p">,</span> <span class="nx">that</span> <span class="nx">controller</span><span class="err">&#39;</span><span class="nx">s</span> <span class="err">```</span><span class="nx">$scope</span><span class="err">```</span> <span class="nx">is</span> <span class="nx">only</span> <span class="nx">accessible</span> <span class="k">in</span> <span class="nx">that</span> <span class="nx">dom</span> <span class="nx">element</span><span class="p">.</span> <span class="nx">Scope</span> <span class="nx">cascascades</span> <span class="nx">like</span> <span class="nx">css</span><span class="p">,</span> <span class="nx">so</span> <span class="nx">any</span> <span class="nx">active</span> <span class="nx">scopes</span> <span class="nx">on</span> <span class="nx">the</span> <span class="nx">parent</span> <span class="nx">elements</span> <span class="nx">are</span> <span class="nx">accessible</span> <span class="nx">as</span> <span class="nx">well</span><span class="p">.</span> <span class="nx">But</span> <span class="k">if</span> <span class="nx">any</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">scope</span> <span class="nx">share</span> <span class="nx">the</span> <span class="nx">same</span> <span class="nx">attributes</span><span class="p">,</span> <span class="nx">the</span> <span class="nx">more</span> <span class="nx">specific</span> <span class="nx">scope</span> <span class="nx">is</span> <span class="nx">the</span> <span class="nx">one</span> <span class="nx">that</span> <span class="nx">counts</span><span class="p">.</span> <span class="nx">Scopes</span> <span class="nx">are</span> <span class="nx">kind</span> <span class="nx">of</span> <span class="nx">analogous</span> <span class="nx">to</span> <span class="nx">instances</span> <span class="nx">variables</span> <span class="nx">from</span> <span class="nx">rails</span> <span class="nx">controllers</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">h2</span><span class="o">&gt;</span><span class="nx">Event</span> <span class="nx">listening</span> <span class="nx">and</span> <span class="nx">broadcasting</span><span class="o">&lt;</span><span class="err">/h2&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Two</span> <span class="nx">way</span> <span class="nx">binding</span> <span class="nx">makes</span> <span class="nx">it</span> <span class="nx">possible</span> <span class="nx">to</span> <span class="nx">update</span> <span class="nx">a</span> <span class="nx">$scope</span> <span class="nx">value</span> <span class="nx">when</span> <span class="nx">it</span> <span class="nx">changes</span><span class="p">.</span> <span class="nx">However</span><span class="p">,</span> <span class="k">if</span> <span class="nx">You</span> <span class="nx">need</span> <span class="nx">to</span> <span class="nx">run</span> <span class="nx">a</span> <span class="kd">function</span> <span class="nx">or</span> <span class="err">```</span><span class="nx">ng</span><span class="o">-</span><span class="nx">repeat</span><span class="err">```</span> <span class="nx">on</span> <span class="nx">a</span> <span class="nx">value</span><span class="p">,</span> <span class="nx">it</span> <span class="nx">needs</span> <span class="nx">a</span> <span class="nx">listener</span> <span class="nx">to</span> <span class="nx">update</span> <span class="k">in</span> <span class="nx">real</span> <span class="nx">time</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">To</span> <span class="nx">run</span> <span class="nx">a</span> <span class="nx">callback</span> <span class="kd">function</span> <span class="nx">when</span> <span class="nx">an</span> <span class="nx">element</span> <span class="nx">updates</span><span class="p">,</span> <span class="nx">use</span> <span class="nx">a</span> <span class="nx">watcher</span><span class="o">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>js controller.js
+$scope.watch(&lsquo;todoItems&rsquo;, function(max) {</p>
+
+<pre><code>$scope.maxItems = listItems(max);
+</code></pre>
+
+<p>});</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">This</span> <span class="nx">will</span> <span class="nx">setup</span> <span class="nx">a</span> <span class="nx">watcher</span> <span class="nx">on</span> <span class="nx">the</span> <span class="err">```</span><span class="nx">ng</span><span class="o">-</span><span class="nx">model</span><span class="o">=</span><span class="s1">&#39;todoItems&#39;</span><span class="err">```</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">view</span><span class="p">.</span> <span class="nx">When</span> <span class="nx">it</span> <span class="nx">changes</span><span class="p">,</span> <span class="nx">the</span> <span class="nx">maxItems</span> <span class="nx">scope</span> <span class="nx">will</span> <span class="nx">be</span> <span class="nx">updated</span> <span class="kd">with</span> <span class="nx">the</span> <span class="k">new</span> <span class="nx">value</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">h3</span><span class="o">&gt;</span><span class="nx">Sharing</span> <span class="nx">values</span> <span class="nx">between</span> <span class="nx">scopes</span><span class="o">&lt;</span><span class="err">/h3&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">To</span> <span class="nx">communicate</span> <span class="nx">state</span> <span class="nx">between</span> <span class="nx">controllers</span> <span class="nx">use</span> <span class="nx">scope</span> <span class="nx">events</span> <span class="nx">like</span> <span class="err">```</span><span class="nx">$scope</span><span class="p">.</span><span class="nx">$on</span><span class="err">```</span><span class="p">,</span> <span class="err">```</span><span class="nx">$scope</span><span class="p">.</span><span class="nx">$emit</span><span class="err">```</span><span class="p">,</span> <span class="err">```</span><span class="nx">$scope</span><span class="p">.</span><span class="nx">watch</span><span class="err">```</span> <span class="nx">and</span> <span class="err">```</span><span class="nx">$scope</span><span class="p">.</span><span class="nx">$broadcast</span><span class="err">```</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">$scope</span><span class="p">.</span><span class="nx">$broadcast</span> <span class="nx">is</span> <span class="nx">to</span> <span class="nx">send</span> <span class="nx">a</span> <span class="nx">message</span> <span class="nx">from</span> <span class="nx">a</span> <span class="nx">parent</span> <span class="nx">controller</span> <span class="nx">to</span> <span class="nx">its</span> <span class="nx">child</span> <span class="nx">controllers</span><span class="o">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>js app.js
+//parent controller scope
+$scope.$broadcast(&lsquo;doSomething&rsquo;);</p>
+
+<p>//child controller scope
+$scope.$on(&lsquo;doSomething&rsquo;, function(event, data) {</p>
+
+<pre><code>$scope.doSomething = true;
+</code></pre>
+
+<p>});</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">Here</span><span class="p">,</span> <span class="nx">the</span> <span class="nx">parent</span> <span class="nx">scope</span> <span class="nx">broadcasts</span> <span class="nx">and</span> <span class="nx">triggers</span> <span class="nx">a</span> <span class="kd">function</span> <span class="nx">inside</span> <span class="nx">the</span> <span class="nx">child</span> <span class="nx">scope</span> <span class="nx">which</span> <span class="nx">is</span> <span class="nx">listening</span> <span class="k">for</span> <span class="nx">the</span> <span class="nx">$broadcast</span> <span class="nx">via</span> <span class="nx">the</span> <span class="nx">$on</span> <span class="nx">listener</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Similarly</span><span class="p">,</span> <span class="nx">events</span> <span class="nx">can</span> <span class="nx">be</span> <span class="nx">emitted</span> <span class="nx">to</span> <span class="nx">go</span> <span class="nx">from</span> <span class="nx">a</span> <span class="nx">child</span> <span class="nx">to</span> <span class="nx">a</span> <span class="nx">parent</span> <span class="nx">scope</span><span class="o">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>js app.js
+//child controller scope
+$scope.$emit(&lsquo;doSomething&rsquo;);</p>
+
+<p>//parent controller scope
+$scope.$on(&lsquo;doSomething&rsquo;, function(event, data) {</p>
+
+<pre><code>$scope.doSomething = true;
+</code></pre>
+
+<p>});</p>
+
+<figure class='code'><figcaption><span>app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="nx">$emit</span> <span class="nx">goes</span> <span class="nx">all</span> <span class="nx">the</span> <span class="nx">way</span> <span class="nx">up</span> <span class="nx">to</span> <span class="nx">the</span> <span class="nx">$rootScope</span><span class="p">.</span> <span class="nx">Use</span> <span class="err">```</span><span class="nx">stopPropogation</span><span class="p">()</span><span class="err">```</span> <span class="nx">to</span> <span class="nx">controller</span> <span class="nx">it</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">What</span> <span class="nx">about</span> <span class="nx">getting</span> <span class="nx">sibling</span> <span class="nx">scopes</span> <span class="nx">to</span> <span class="nx">communicate</span><span class="o">?</span> <span class="nx">Pass</span> <span class="nx">events</span> <span class="nx">by</span> <span class="nx">$broadcast</span> <span class="nx">on</span> <span class="nx">the</span> <span class="nx">rootscope</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>js app.js
+//sibling controller scope
+.controller(&lsquo;siblingCtrl&rsquo;, function($scope, $rootScope){
+$scope.sendMessage = function(value) {</p>
+
+<pre><code>$rootScope.$broadcast('someData', value);
+</code></pre>
+
+<p>  };
+})</p>
+
+<p>//sibling 2 controller scope
+$scope.$on(&lsquo;doSomething&rsquo;, function(event, data) {</p>
+
+<pre><code>$scope.doSomething = true;
+</code></pre>
+
+<p>});
+&#8220;`</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-17T08:00:00-04:00" pubdate data-updated="true">May 17<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/05/17/angular-overview/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/05/17/angular-overview/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/05/10/single-responsibility-and-decorators/" title="Previous Post: Single Responsibility and Decorators">&laquo; Single Responsibility and Decorators</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/05/30/blocks/" title="Next Post: Blocks, procs and lambdas">Blocks, procs and lambdas &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/05/17/angular-overview/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/05/17/angular-overview/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

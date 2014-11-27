@@ -1,0 +1,440 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Controller PORO Refactor - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Refactoring a big controller method into a plain old Ruby object to keep the
+controller thin. Here&rsquo;s a controller method that&rsquo;s starting &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/08/19/refactor">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Controller PORO Refactor</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-19T05:31:04-04:00" pubdate data-updated="true">Aug 19<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Refactoring a big controller method into a plain old Ruby object to keep the
+controller thin.</p>
+
+<!--more-->
+
+
+<p>Here&rsquo;s a <code>controller</code> method that&rsquo;s starting to get a little fat:</p>
+
+<figure class='code'><figcaption><span>messages_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Api</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">V1</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">MessagesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>      <span class="n">before_action</span> <span class="ss">:signed_in?</span><span class="p">,</span> <span class="ss">:get_box</span><span class="p">,</span> <span class="ss">except</span><span class="p">:</span> <span class="o">[</span><span class="ss">:count</span><span class="o">]</span>
+</span><span class='line'>      <span class="n">before_action</span> <span class="ss">:can_message?</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:create</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>        <span class="k">if</span> <span class="vi">@box</span><span class="o">.</span><span class="n">eql?</span> <span class="s2">&quot;inbox&quot;</span>
+</span><span class='line'>          <span class="vi">@messages</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">received_messages</span>
+</span><span class='line'>        <span class="k">elsif</span> <span class="vi">@box</span><span class="o">.</span><span class="n">eql?</span> <span class="s2">&quot;sentbox&quot;</span>
+</span><span class='line'>          <span class="vi">@messages</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">sent_messages</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>          <span class="vi">@messages</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">trashed_messages</span>
+</span><span class='line'>        <span class="k">end</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kp">private</span>
+</span><span class='line'>        <span class="k">def</span> <span class="nf">get_box</span>
+</span><span class='line'>          <span class="k">if</span> <span class="n">params</span><span class="o">[</span><span class="ss">:box</span><span class="o">].</span><span class="n">blank?</span> <span class="ow">or</span> <span class="o">![</span><span class="s2">&quot;inbox&quot;</span><span class="p">,</span><span class="s2">&quot;sentbox&quot;</span><span class="p">,</span><span class="s2">&quot;trash&quot;</span><span class="o">].</span><span class="n">include?params</span><span class="o">[</span><span class="ss">:box</span><span class="o">]</span>
+</span><span class='line'>            <span class="n">params</span><span class="o">[</span><span class="ss">:box</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;inbox&#39;</span>
+</span><span class='line'>          <span class="k">end</span>
+</span><span class='line'>          <span class="vi">@box</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:box</span><span class="o">]</span>
+</span><span class='line'>        <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Index</code> renders a different set of messages is rendered depending on <code>params[:box]</code>.
+It&rsquo;s not a terribly fat method, but it does have a bit of logic that could be encapsulated elsewhere to make
+the controller more readable.</p>
+
+<p>A simple solution is to use a plain old Ruby object:</p>
+
+<figure class='code'><figcaption><span>models/mail_fetcher.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MailFetcher</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@type</span> <span class="o">=</span> <span class="n">type</span>
+</span><span class='line'>    <span class="vi">@user_id</span> <span class="o">=</span> <span class="n">user_id</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">get</span>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@type</span> <span class="o">==</span> <span class="s1">&#39;inbox&#39;</span>
+</span><span class='line'>      <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="vi">@user_id</span><span class="p">)</span><span class="o">.</span><span class="n">received_messages</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="vi">@type</span> <span class="o">==</span> <span class="s1">&#39;sentbox&#39;</span>
+</span><span class='line'>      <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="vi">@user_id</span><span class="p">)</span><span class="o">.</span><span class="n">sent_messages</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="vi">@user_id</span><span class="p">)</span><span class="o">.</span><span class="n">trashed_messages</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then the <code>index</code> action cleans up to:</p>
+
+<figure class='code'><figcaption><span>messages_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>  <span class="vi">@messages</span> <span class="o">=</span> <span class="no">MailFetcher</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="vi">@box</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span>
+</span><span class='line'>  <span class="n">render</span> <span class="ss">json</span><span class="p">:</span> <span class="vi">@messages</span><span class="p">,</span> <span class="ss">root</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span> <span class="ss">status</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="n">each_serializer</span><span class="p">:</span> <span class="no">MessageSerializer</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>leading to a simpler controller and an easy way to add this behavior elsewhere in
+the application if needed. It&rsquo;s also easy to test this PORO.</p>
+
+<p>Another optional step would be to move the call to <code>MailFetcher</code> into a <code>before_action</code>:</p>
+
+<figure class='code'><figcaption><span>messages_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Api</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">V1</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">MessagesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>      <span class="n">before_action</span> <span class="ss">:signed_in?</span><span class="p">,</span> <span class="ss">:get_box</span><span class="p">,</span> <span class="ss">except</span><span class="p">:</span> <span class="o">[</span><span class="ss">:count</span><span class="o">]</span>
+</span><span class='line'>      <span class="n">before_action</span> <span class="ss">:can_message?</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:create</span><span class="o">]</span>
+</span><span class='line'>      <span class="n">before_action</span> <span class="ss">:get_messages</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:index</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>        <span class="n">render</span> <span class="ss">json</span><span class="p">:</span> <span class="vi">@messages</span><span class="p">,</span> <span class="ss">root</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span> <span class="ss">status</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="n">each_serializer</span><span class="p">:</span> <span class="no">MessageSerializer</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kp">private</span>
+</span><span class='line'>        <span class="k">def</span> <span class="nf">get_box</span>
+</span><span class='line'>          <span class="k">if</span> <span class="n">params</span><span class="o">[</span><span class="ss">:box</span><span class="o">].</span><span class="n">blank?</span> <span class="ow">or</span> <span class="o">![</span><span class="s2">&quot;inbox&quot;</span><span class="p">,</span><span class="s2">&quot;sentbox&quot;</span><span class="p">,</span><span class="s2">&quot;trash&quot;</span><span class="o">].</span><span class="n">include?params</span><span class="o">[</span><span class="ss">:box</span><span class="o">]</span>
+</span><span class='line'>            <span class="n">params</span><span class="o">[</span><span class="ss">:box</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;inbox&#39;</span>
+</span><span class='line'>          <span class="k">end</span>
+</span><span class='line'>          <span class="vi">@box</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:box</span><span class="o">]</span>
+</span><span class='line'>        <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">def</span> <span class="nf">get_messages</span>
+</span><span class='line'>          <span class="vi">@messages</span> <span class="o">=</span> <span class="no">MailFetcher</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="vi">@box</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span>
+</span><span class='line'>        <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-19T05:31:04-04:00" pubdate data-updated="true">Aug 19<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/08/19/refactor/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/08/19/refactor/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/07/05/token-auth/" title="Previous Post: Token Auth with Angular and Rails">&laquo; Token Auth with Angular and Rails</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/08/22/angular-testing/" title="Next Post: angular testing">angular testing &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/08/19/refactor/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/08/19/refactor/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Freelance Lessons - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Lessons from recent projects Specs and Sprints Which is easier to develop: User logs in User uploads a cat photo and tags his cat&#8217;s name User &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/05/04/freelance-lessons">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Freelance Lessons</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-04T07:33:01-04:00" pubdate data-updated="true">May 4<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Lessons from recent projects<!--more--></p>
+
+<h2>Specs and Sprints</h2>
+
+
+<p>Which is easier to develop:</p>
+
+<ul>
+    <li>User logs in</li>
+    <li>User uploads a cat photo and tags his cat&#8217;s name</li>
+    <li>User publishes the photo and it&#8217;s viewable by other users who are interested in &#8220;cats&#8221;</li>
+</ul>
+
+
+<p>Or:</p>
+
+<ul>
+    <li>Users can share pictures of their kitties.</li>
+</ul>
+
+
+<p>?????</p>
+
+<p>Clients don&rsquo;t always give good user stories for their projects and maybe it&rsquo;s some extra work to expand on simple specs, but detailed stories make feature development easier.</p>
+
+<p>Work in sprints, not vague deadlines. Something like:</p>
+
+<ul>
+    <li>Week 1: User registrations</li>
+    <li>Week 2: Cat uploading and tagging</li>
+    <li>Week 3: Photo sharing through user interests</li>
+</ul>
+
+
+<p>with a quick client-side demo after each major milestone, is much more preferable to &ldquo;Finish the project by the end of the month.&rdquo;</p>
+
+<h2>Modeling Models</h2>
+
+
+<p>I had a bad habit of over-using <code>many-to-many</code> relationships between models. This leads to working code, but probably makes the database more complex than it needs to be. Before jumping in, how about spending some time extracting model relationships from the spec and seeing where self-referential and polymorphic relationships could be used?</p>
+
+<h3>Really Fat Models</h3>
+
+
+<p>Everyone talks about putting all of the logic in the controller, but very few people seem to be talking about creating classes with single responsibilities. Sandy Metz&#8217; Practical Object Oriented Design in Ruby is real good about hammering this point. The problem I have is putting it into practice and not ending up with 200+ line <code>User</code> models.</p>
+
+<h3>Naming Attributes</h3>
+
+
+<p>Creating conventions for model attribute names saves a lot of headache when models have similar attributes.</p>
+
+<p>For example, when building a blog platform that serves both French and English content, posts will have both <code>french_title</code> and <code>english_title</code> attributes. Later on, when the <code>Post</code> <code>has_many :categories</code> and needs to serve these <code>categories</code> in both languages, it is a good idea to call the attributes <code>french_name</code> and <code>english_name</code> to stick with the convention on <code>Post</code>. Why? If they are called something else like <code>fre_name</code> and <code>en_name</code>, it&rsquo;s <em>highly</em> likely the attribute names will get mixed up somewhere and we could end up with code like <code>Post.fre_title</code>, which makes a mess of our methods and can sometimes be a pain to track down.</p>
+
+<h2>Testing</h2>
+
+
+<p>TDD is great, but I end up writing many <code>feature</code> specs and not enough <code>unit tests</code>. Some material from Thoughtbot talks about outside-in testing, in which feature tests guide development and unit tests are written along the way as they come up. Basically, as soon as the feature test requires changes to a model, those changes need to be unit tested before the feature test can continue.</p>
+
+<p>Another point from Thoughtbot: in feature specs, test all the success scenarios, but only one failure scenario to avoid too much overlap between feature and unit tests. If a <code>Post</code> <code>validates :name, presence: true, uniqueness: true</code> and the feature spec tests Post creation, it&rsquo;s probably overkill to test that the submission fails on both the absence of and un-uniquess of <code>name</code>. Test for one failing case to be sure failure is handled correctly and deal with the other validations in unit tests.</p>
+
+<h2>Secrets</h2>
+
+
+<p>When a project calls for using some API, there&rsquo;s probably a gem to make things easier. Lots of documentation just dumps API keys into <code>config/your_api_gem.rb</code>, which will probably get committed to source and isn&rsquo;t such a great idea. Save some cleanup work later by dumping keys into <code>application.yml</code> or <code>secrets.yml</code> from the start.</p>
+
+<h2>Where&#8217;s it going?</h2>
+
+
+<p>It would be great to just do <code>heroku create</code> <code>git push heroku master</code> for every project, but Heroku is pricey and not always the right tool for the job. Deploying to a $5 Ubuntu instance on Digital Ocean &mdash; in addition to a test server on Heroku &mdash; could save some time if/when the project needs to be put on a vps.</p>
+
+<p>The downside with duel-deploying to Heroku and DI is that requires a little extra work, but the benefits of practice on server-setup and testing the application in various environments probably outweight the timeloss.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-04T07:33:01-04:00" pubdate data-updated="true">May 4<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/05/04/freelance-lessons/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/05/04/freelance-lessons/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/04/26/rails-caching-notes/" title="Previous Post: Rails Caching Notes">&laquo; Rails Caching Notes</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/05/10/single-responsibility-and-decorators/" title="Next Post: Single Responsibility and Decorators">Single Responsibility and Decorators &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/05/04/freelance-lessons/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/05/04/freelance-lessons/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

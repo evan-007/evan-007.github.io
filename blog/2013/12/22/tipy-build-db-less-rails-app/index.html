@@ -1,0 +1,977 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Tipy: Build Db-less Rails App - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Almost everyone builds a db-driven app for their first rails project, but what about when you don&rsquo;t need a db? What we&#8217;re building &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2013/12/22/tipy-build-db-less-rails-app">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Tipy: Build Db-less Rails App</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-22T03:24:37-05:00" pubdate data-updated="true">Dec 22<span>nd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Almost everyone builds a db-driven app for their first rails project, but what about when you don&rsquo;t need a db?<!--more--></p>
+
+<h2>What we&#8217;re building</h2>
+
+
+<p><a href ="http://thinkful.com">Thinkful</a> is an online dev-schoolish program that I started a week or so ago. At the end of Unit 1 of the Rails track, you build a tip calculator that takes 3 user-inputs: meal price, tax rate and tip rate. The script then calculates the tax and tip values along with the total price.</p>
+
+<p>In this tutorial, we&rsquo;ll take that same idea and build a simple rails app around it. We&rsquo;ll do behavior-driven development with Rspec and then deploy to heroku.</p>
+
+<h2>Who cares?</h2>
+
+
+<p>The app is straightforward &mdash; take user-input values, perform calculations on them, and spit out the result &mdash; and using Rails for something like this is probably overkill, but it does provide an interesting lesson on how to work in Rails without a database.</p>
+
+<h2>Setup</h2>
+
+
+
+
+<figure class='code'><figcaption><span>Generate the application, setup git and install Rspec:</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rails new tipy --skip-unit-test
+</span><span class='line'>$ cd tipy
+</span><span class='line'>$ git init
+</span><span class='line'>$ git add .
+</span><span class='line'>$ git commit -m "Generates rails app"
+</span><span class='line'>$ git remote add origin https://github.com/username/bucket_name.git
+</span><span class='line'>$ git push -u origin master </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, add these to your gemfile to get the testing environment setup:</p>
+
+<figure class='code'><figcaption><span>Gemfile</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">group</span> <span class="ss">:test</span><span class="p">,</span> <span class="ss">:development</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;rspec-rails&#39;</span><span class="p">,</span> <span class="s2">&quot;~&gt; 2.14&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="n">group</span> <span class="ss">:test</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capybara&#39;</span><span class="p">,</span> <span class="s2">&quot;2.1.0&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>console</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle update
+</span><span class='line'>$ rails g rspec:install</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Make it easier to run rspec without typing bundle exec every time (I learned this in <a href = "http://www.manning.com/bigg2/">Rails 4 in Action</a>):</p>
+
+<figure class='code'><figcaption><span>console</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bin/bundle binstubs rspec-core</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h2>Testing&#8230;testing&#8230;</h2>
+
+
+<p>It&rsquo;s probably overkill to use BDD for this app, but it&rsquo;s good practice.</p>
+
+<p>We&rsquo;re creating a feature spec as per the <a href = "https://relishapp.com/rspec/rspec-rails/docs/feature-specs/feature-spec">Rspec docs</a>: &ldquo;Feature specs are high-level tests meant to exercise slices of functionality through an application. They should drive the application only via its external interface, usually web pages.&rdquo;</p>
+
+<p>Create tip_spec.rb in tipy/spec/features and add the first tests</p>
+
+<figure class='code'><figcaption><span>tip_spec.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+</span><span class='line'><span class="n">feature</span> <span class="s1">&#39;Calculating tips&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">scenario</span> <span class="s2">&quot;can enter meal data&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">visit</span> <span class="s1">&#39;/&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;price&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;50&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;tip&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;15&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;tax&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This first test finds a form on the app&rsquo;s root and fills out the fields required for our tip calculator. Run the test by using <code>bin/rspec</code> if you added in the setup earlier and watch it fail.</p>
+
+<p>Looking at the failing test results, this is probably a good time to talk about how Tipy will work:</p>
+
+<figure class='code'><figcaption><span>failed test</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Failures:
+</span><span class='line'>
+</span><span class='line'>  1) Calculating tips can enter meal data
+</span><span class='line'>     Failure/Error: visit '/'
+</span><span class='line'>     ActionController::RoutingError:
+</span><span class='line'>       No route matches [GET] "/"
+</span><span class='line'>     # ./spec/tip_spec.rb:4:in `block (2 levels) in &lt;top (required)&gt;'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It fails because there aren&rsquo;t any routes yet. Before doing the routes, let&rsquo;s think through what we need:</p>
+
+<p>Users will enter their meal data into a form on the root page, then click a button which will cause the app to run the calculations on their data and display it on the next page. In the rails world, we&rsquo;re basically going to be using the &lsquo;New&rsquo; and &lsquo;Create&rsquo; parts of <a href ="http://guides.rubyonrails.org/routing.html">Rails Routing</a> with a hook:</p>
+
+<p>We aren&rsquo;t going to be saving any of the user input, so we won&rsquo;t be able to use the <a href="http://guides.rubyonrails.org/form_helpers.html#binding-a-form-to-an-object">form_for approach</a> on which basically every other rails tutorial is based.</p>
+
+<p>Instead, we&rsquo;ve got to use <a href ="http://guides.rubyonrails.org/form_helpers.html#dealing-with-basic-forms">form_tag</a> to pass user input into the controller. My conceptualization of Tipy uses two controller actions: #new and #calculate, so let&rsquo;s make a controller for our tips:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ruby rails g controller tips new calculate</span></code></pre></td></tr></table></div></figure>
+
+
+<p>By passing &lsquo;new&rsquo; and &lsquo;calculate&rsquo; to &lsquo;g controller&rsquo;, the generator also makes some routes, but they generated routes won&rsquo;t get the tests to pass.Run bin/rspec again to confirm. Fire up <code>ruby $rails s</code> and go to <code>localhost:3000</code>to confirm:</p>
+
+<p><img src="/images/default.png" title="" ></p>
+
+<p>Let&rsquo;s fix our routing by setting the root to #new:</p>
+
+<figure class='code'><figcaption><span>routes</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Tipy</span><span class="p">:</span><span class="ss">:Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">root</span> <span class="s2">&quot;tips#new&quot;</span>
+</span><span class='line'>  <span class="n">get</span> <span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s1">&#39;tips#calculate&#39;</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="s1">&#39;results&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The root of our app now goes to the New action in the tips controller and the Calculate action is mapped to <code>/results</code>. This is just because <code>/tips/calculate</code> is kind of ugly.</p>
+
+<p>Running <code>plain bin/rspec</code> shows a new error:</p>
+
+<figure class='code'><figcaption><span>Console</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>1) Calculating tips can enter meal data
+</span><span class='line'>     Failure/Error: fill_in 'price', with: '50'
+</span><span class='line'>     Capybara::ElementNotFound:
+</span><span class='line'>       Unable to find field "price"
+</span><span class='line'>     # ./spec/features/tip_spec.rb:7:in `block (2 levels) in &lt;top (required)&gt;'
+</span><span class='line'>
+</span><span class='line'>Finished in 1.09 seconds
+</span><span class='line'>6 examples, 1 failure, 3 pending'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are also 3 pending tests that were created by <code>rails g controller</code>, delete the /helpers, /views and /controller folders from /spec
+Our test can&rsquo;t find any of the fields because we have no form! Let&rsquo;s make it:</p>
+
+<figure class='code'><figcaption><span>app/views/new.html.erb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">How</span> <span class="n">much</span> <span class="n">is</span> <span class="n">the</span> <span class="n">tip?</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'><span class="sr">&lt;ul&gt;</span>
+</span><span class='line'><span class="sr">  &lt;p&gt;Enter your meal info:&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/ul&gt;</span>
+</span><span class='line'><span class="sr">  &lt;%= form_tag(&#39;/</span><span class="n">tips</span><span class="o">/</span><span class="n">calculate</span><span class="s1">&#39;) do %&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= label_tag(&quot;Meal price:&quot;) %&gt;</span>
+</span><span class='line'><span class="s1">&lt;/ul&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= text_field_tag(:price, nil, placeholder: &quot;Enter cost without tax and tip&quot;) %&gt;</span>
+</span><span class='line'><span class="s1">&lt;/ul&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= label_tag(&quot;Tip:&quot;) %&gt;</span>
+</span><span class='line'><span class="s1">&lt;/ul&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= text_field_tag(:tip, nil, placeholder: &quot;Enter tip (i.e. 15 for 15%)&quot;) %&gt;</span>
+</span><span class='line'><span class="s1">&lt;/ul&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= label_tag(&quot;Tax&quot;) %&gt;</span>
+</span><span class='line'><span class="s1">&lt;/ul&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= text_field_tag(:tax, nil, placeholder: &quot;Enter tax (i.e. 5 for %5)&quot;) %&gt;</span>
+</span><span class='line'><span class="s1">&lt;/ul&gt;</span>
+</span><span class='line'><span class="s1">&lt;ul&gt;</span>
+</span><span class='line'><span class="s1">  &lt;%= submit_tag &#39;</span><span class="no">Calculate</span><span class="err">&#39;</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">&lt;/ul&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So what&rsquo;s going on here?
+As stated before, we&rsquo;re using form_tag because we aren&rsquo;t working with a model.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">form_tag</span><span class="p">(</span><span class="s1">&#39;/tips/calculate&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As per the <a href= "http://apidock.com/rails/ActionView/Helpers/FormTagHelper/form_tag">documentation</a>, form_tag takes a (&lsquo;url&rsquo;) to which the form will post. In our app, the form will post to the calculator action in the Tips controller, so we put <code>form_tag('/tips/calculate')</code>.</p>
+
+<p>In our form, we need one text_field each for our meal, tip and tax inputs. Most over examples use <code>form_for</code> to intereact with a database.</p>
+
+<p><a href= "http://www.saalonmuyo.com/2010/01/27/using-form_tag-in-ruby-on-rails/">This article</a> does a great job summing up the differences between the two form types in Rails.</p>
+
+<p>In regular resource-based forms, the text_field matches the resource name. Since we aren&rsquo;t working with a model, we&rsquo;re free to define the resouces however we want. I choose price, tip and tax to make them clear and easy to remember for when we define the calculate method more.</p>
+
+<p>Finally, each <code>text_field_tag</code> has a placeholder value that tells the user how to correctly input information.</p>
+
+<p>Running <code>bin/rspec</code> shows green tests:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bin/rspec
+</span><span class='line'>.
+</span><span class='line'>
+</span><span class='line'>Finished in 0.13144 seconds
+</span><span class='line'>1 example, 0 failures</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Visiting localhost:3000 shows our progress:</p>
+
+<p><img src="/images/form.png" title="" ></p>
+
+<p>The format issues will be fixed later.</p>
+
+<h2>More tests and #calculate</h2>
+
+
+<p>Remember that we want a user to visit the root, enter their meal info, click calculate and then be taken to the #calculate action. So far we&rsquo;ve only tested for the first two actions. Let&rsquo;s update our test to reflect the rest of the behavior and refactor it a little.</p>
+
+<figure class='code'><figcaption><span>tip_spec.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">feature</span> <span class="s1">&#39;Calculating tips&#39;</span> <span class="k">do</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">visit</span> <span class="s1">&#39;/&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">scenario</span> <span class="s2">&quot;can enter meal data&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;price&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;50&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;tip&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;15&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;tax&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">scenario</span> <span class="s2">&quot;can view calculation page&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">visit</span> <span class="s1">&#39;/&#39;</span>
+</span><span class='line'>    <span class="n">click_button</span> <span class="s2">&quot;Calculate&quot;</span>
+</span><span class='line'>    <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Tip info:&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We took <code>visit '/'</code> out of the first scenario since it is common to both tests and put it in the <code>before</code> block.</p>
+
+<p>Run <code>bin/rspec</code> for a new error:</p>
+
+<figure class='code'><figcaption><span>console</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.F
+</span><span class='line'>
+</span><span class='line'>Failures:
+</span><span class='line'>
+</span><span class='line'>  1) Calculating tips can view calculation page
+</span><span class='line'>     Failure/Error: click_button "Calculate"
+</span><span class='line'>     ActionController::RoutingError:
+</span><span class='line'>       No route matches [POST] "/tips/calculate"
+</span><span class='line'>     # ./spec/tip_spec.rb:17:in `block (2 levels) in &lt;top (required)&gt;'
+</span><span class='line'>
+</span><span class='line'>Finished in 0.20301 seconds
+</span><span class='line'>2 examples, 1 failure
+</span><span class='line'>
+</span><span class='line'>Failed examples:
+</span><span class='line'>
+</span><span class='line'>rspec ./spec/tip_spec.rb:15 # Calculating tips can view calculation page</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We do not have a post route for &lsquo;calculate&rsquo;. Add it to the routing:</p>
+
+<figure class='code'><figcaption><span>routes.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Tipy</span><span class="p">:</span><span class="ss">:Application</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">draw</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">root</span> <span class="s2">&quot;tips#new&quot;</span>
+</span><span class='line'>  <span class="n">get</span> <span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s1">&#39;tips#calculate&#39;</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="s1">&#39;results&#39;</span>
+</span><span class='line'>  <span class="n">post</span> <span class="s1">&#39;tips/calculate&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This needs to be changed later because of lines 2 and 3 are kinda in conflict.</p>
+
+<p>Now rerun the test <code>bin/rspec</code> and get this error:</p>
+
+<figure class='code'><figcaption><span>bin/rspec</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span><span class="n">F</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">Failures</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">1</span><span class="p">)</span> <span class="no">Calculating</span> <span class="n">tips</span> <span class="n">can</span> <span class="n">view</span> <span class="n">calculation</span> <span class="n">page</span>
+</span><span class='line'>     <span class="no">Failure</span><span class="o">/</span><span class="ss">Error</span><span class="p">:</span> <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Tip info:&quot;</span><span class="p">)</span>
+</span><span class='line'>       <span class="n">expected</span> <span class="n">to</span> <span class="n">find</span> <span class="n">text</span> <span class="s2">&quot;Tip info:&quot;</span> <span class="k">in</span> <span class="s2">&quot;Tips#calculate Find me in app/views/tips/calculate.html.erb&quot;</span>
+</span><span class='line'>     <span class="c1"># ./spec/tip_spec.rb:18:in `block (2 levels) in &lt;top (required)&gt;&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Finished</span> <span class="k">in</span> <span class="mi">0</span><span class="o">.</span><span class="mi">56387</span> <span class="n">seconds</span>
+</span><span class='line'><span class="mi">2</span> <span class="n">examples</span><span class="p">,</span> <span class="mi">1</span> <span class="n">failure</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Failed</span> <span class="ss">examples</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">rspec</span> <span class="o">.</span><span class="n">/spec</span><span class="o">/</span><span class="n">tip_spec</span><span class="o">.</span><span class="n">rb</span><span class="p">:</span><span class="mi">15</span> <span class="c1"># Calculating tips can view calculation page</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The error message tells us exactly what the problem is: the view doesn&rsquo;t have the right fields. Let&rsquo;s build it:</p>
+
+<figure class='code'><figcaption><span>calculate.html.erb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="no">Tip</span> <span class="ss">info</span><span class="p">:</span><span class="o">&lt;</span><span class="sr">/h2&gt;</span>
+</span><span class='line'><span class="sr">&lt;p&gt;</span>
+</span><span class='line'><span class="sr">  Tip:  $&lt;%= @tip %&gt; </span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="ss">Tax</span><span class="p">:</span>  <span class="vg">$&lt;</span><span class="sx">%= @tax %&gt;</span>
+</span><span class='line'><span class="sx">&lt;/p&gt;</span>
+</span><span class='line'><span class="sx">&lt;p&gt;</span>
+</span><span class='line'><span class="sx">  </span>
+</span><span class='line'><span class="sx">  Total:  $&lt;%=</span> <span class="vi">@total</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">&lt;/p&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">&gt;</span><span class="n">try</span> <span class="n">again</span><span class="o">&lt;</span><span class="sr">/a&gt;</span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The code: <code>&lt;h2&gt;Tip info:&lt;/h2&gt;</code> makes the test pass and there is also embeded ruby return the tip, tax and total values.</p>
+
+<p>Verify that our tests are green <code>Finished in 0.55052 seconds 2 examples, 0 failures</code></p>
+
+<h2>Filling out the Calculate controller</h2>
+
+
+<p>Tips#calculate is defined, but it is not yet setup to work with Lprice, :tip and :tax from the <code>new.html.erb</code> form. A revision to the test shows full app functionality:</p>
+
+<figure class='code'><figcaption><span>tip_spec.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;spec_helper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">feature</span> <span class="s1">&#39;Calculating tips&#39;</span> <span class="k">do</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">visit</span> <span class="s1">&#39;/&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;price&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;50&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;tip&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;15&#39;</span>
+</span><span class='line'>    <span class="n">fill_in</span> <span class="s1">&#39;tax&#39;</span><span class="p">,</span> <span class="ss">with</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">scenario</span> <span class="s2">&quot;can calculate meal info&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">click_button</span> <span class="s2">&quot;Calculate&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Tip: $7.5&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Tax: $2.5&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Total: $60&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s redundant to keep checking for &lsquo;Can view the calculation page&rsquo; since the new scenario includes that scenario.</p>
+
+<p>The test fails:</p>
+
+<figure class='code'><figcaption><span>bin/rspec</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span><span class="n">F</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">Failures</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">1</span><span class="p">)</span> <span class="no">Calculating</span> <span class="n">tips</span> <span class="n">can</span> <span class="n">calculate</span> <span class="n">meal</span> <span class="n">info</span>
+</span><span class='line'>     <span class="no">Failure</span><span class="o">/</span><span class="ss">Error</span><span class="p">:</span> <span class="n">page</span><span class="o">.</span><span class="n">should</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Tip: $7.5&quot;</span><span class="p">)</span>
+</span><span class='line'>       <span class="n">expected</span> <span class="n">to</span> <span class="n">find</span> <span class="n">text</span> <span class="s2">&quot;Tip: $7.5&quot;</span> <span class="k">in</span> <span class="s2">&quot;Tip info: Tip: $ Tax: $ Total: $ try again&quot;</span>
+</span><span class='line'>     <span class="c1"># ./spec/features/tip_spec.rb:21:in `block (2 levels) in &lt;top (required)&gt;&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Finished</span> <span class="k">in</span> <span class="mi">0</span><span class="o">.</span><span class="mi">14588</span> <span class="n">seconds</span>
+</span><span class='line'><span class="mi">1</span> <span class="n">examples</span><span class="p">,</span> <span class="mi">1</span> <span class="n">failure</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Failed</span> <span class="ss">examples</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">rspec</span> <span class="o">.</span><span class="n">/spec</span><span class="o">/</span><span class="n">features</span><span class="o">/</span><span class="n">tip_spec</span><span class="o">.</span><span class="n">rb</span><span class="p">:</span><span class="mi">19</span> <span class="c1"># Calculating tips can calculate meal info</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Randomized</span> <span class="n">with</span> <span class="n">seed</span> <span class="mi">41290</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The test is failing because :tip, :meal and :tax are going into the calculate action of the Tips controller via the form on <code>/new.html.erb</code>, but the controller doesn&rsquo;t do anything with those params.</p>
+
+<p>Making this test pass requires defining the methods used to change the params into the desired output. Instead of doing the calculations in the controller, this will be handled in a new Class in <code>/lib</code>.</p>
+
+<figure class='code'><figcaption><span>tip_calculator.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Tip_calculator</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">integer</span><span class="p">,</span> <span class="n">percent</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="n">integer</span> <span class="o">*</span> <span class="n">percent</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">to_percent</span><span class="p">(</span><span class="n">integer</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">Float</span><span class="p">(</span><span class="n">integer</span><span class="p">))</span><span class="o">/</span><span class="mi">100</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The class has the two methods needed to turn the :tip, :tax, and :meal attributes into the desired output.</p>
+
+<p>To use the class in the Tips Controller:</p>
+
+<figure class='code'><figcaption><span>tip_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">TipsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="s1">&#39;tip_calculator.rb&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">new</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">calculate</span>
+</span><span class='line'>    <span class="n">tip</span> <span class="o">=</span> <span class="o">::</span><span class="no">Tip_calculator</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>    <span class="n">tax</span> <span class="o">=</span> <span class="o">::</span><span class="no">Tip_calculator</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">tip_percent</span> <span class="o">=</span> <span class="n">tip</span><span class="o">.</span><span class="n">to_percent</span><span class="p">((</span><span class="n">params</span><span class="o">[</span><span class="ss">:tip</span><span class="o">]</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">tax_percent</span> <span class="o">=</span> <span class="n">tax</span><span class="o">.</span><span class="n">to_percent</span><span class="p">((</span><span class="n">params</span><span class="o">[</span><span class="ss">:tax</span><span class="o">]</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">meal_price</span> <span class="o">=</span> <span class="p">(</span><span class="nb">Float</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:price</span><span class="o">]</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="vi">@tip</span> <span class="o">=</span> <span class="n">tip</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">meal_price</span><span class="p">,</span> <span class="n">tip_percent</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="vi">@tax</span> <span class="o">=</span> <span class="n">tax</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">meal_price</span><span class="p">,</span> <span class="n">tax_percent</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@total</span> <span class="o">=</span> <span class="vi">@tip</span> <span class="o">+</span> <span class="vi">@tax</span> <span class="o">+</span> <span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:price</span><span class="o">].</span><span class="n">to_i</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The app is more-or-less complete with these additions: the methods from solving <a href= "http://www.thinkful.com">Thinkful&rsquo;s</a> Unit 1 Lesson 6 go in /lib/tip_calculator.rb and then with <code>require 'tip_calculator.rb'</code> in the TipsController we can keep the methods out of the controller.</p>
+
+<figure class='code'><figcaption><span>bin/rspec</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bin/rspec
+</span><span class='line'>.
+</span><span class='line'>
+</span><span class='line'>Finished in 0.12294 seconds
+</span><span class='line'>1 example, 0 failures
+</span><span class='line'>
+</span><span class='line'>Randomized with seed 14829</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With the test passing, update the gemfile and push to Heroku.</p>
+
+<figure class='code'><figcaption><span>Gemfile</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>source 'https://rubygems.org'
+</span><span class='line'>
+</span><span class='line'>gem 'rails', '4.0.2'
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>gem 'sass-rails', '~&gt; 4.0.0'
+</span><span class='line'>gem 'uglifier', '&gt;= 1.3.0'
+</span><span class='line'>gem 'coffee-rails', '~&gt; 4.0.0'
+</span><span class='line'>gem 'jquery-rails'
+</span><span class='line'>gem 'turbolinks'
+</span><span class='line'>gem 'jbuilder', '~&gt; 1.2'
+</span><span class='line'>
+</span><span class='line'>group :doc do
+</span><span class='line'>  gem 'sdoc', require: false
+</span><span class='line'>end
+</span><span class='line'>
+</span><span class='line'>group :test, :development do
+</span><span class='line'>  gem 'rspec-rails', "~&gt; 2.14"
+</span><span class='line'>end
+</span><span class='line'>group :test do
+</span><span class='line'>  gem 'capybara', "2.1.0"
+</span><span class='line'>end
+</span><span class='line'>
+</span><span class='line'>group :development do
+</span><span class='line'>  gem 'sqlite3', '1.3.8'
+</span><span class='line'>end
+</span><span class='line'>
+</span><span class='line'>group :production do
+</span><span class='line'>  gem 'pg', '0.15.1'
+</span><span class='line'>  gem 'rails_12factor', '0.0.2'
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and push to heroku</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>bundle install
+</span><span class='line'>heroku create
+</span><span class='line'>git push heroku master
+</span><span class='line'>heroku open</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://github.com/evan-007/tipy">View Code on Github</a></p>
+
+<p>To-do: edit for errors/style, change &ldquo;try again&rdquo; link in calculate.html.erb to link_to</p>
+
+<p>Problems: /calculate.html.erb doesn&rsquo;t always show 2 decimal places, attribute/method/controller/class names are all similar and confusing, are floats really the best way to handle decimals?</p>
+
+<p>Extensions: style with bootstrap, don&rsquo;t hardcode $ into view, validations on input possible?</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-22T03:24:37-05:00" pubdate data-updated="true">Dec 22<span>nd</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2013/12/22/tipy-build-db-less-rails-app/" data-via="" data-counturl="http://evan-007.github.io/blog/2013/12/22/tipy-build-db-less-rails-app/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/12/06/octopress-basics/" title="Previous Post: Octopress Basics">&laquo; Octopress Basics</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/12/31/twetter/" title="Next Post: Adding features">Adding features &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2013/12/22/tipy-build-db-less-rails-app/';
+        var disqus_url = 'http://evan-007.github.io/blog/2013/12/22/tipy-build-db-less-rails-app/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

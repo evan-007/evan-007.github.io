@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Adding Features - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Part 1 of Unit 4 for Thinkful: developing features on someone else&rsquo;s code. &ldquo;In the original app that inspired Twetter, when you mention &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2013/12/31/twetter">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Adding Features</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-31T17:45:50-05:00" pubdate data-updated="true">Dec 31<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Part 1 of Unit 4 for Thinkful: developing features on someone else&rsquo;s code.<!--more--></p>
+
+<p>&ldquo;In the original app that inspired Twetter, when you mention another user with an @username mention in a twet, the “@username” text will by default link to that user’s profile page, where you can see all of their recent twets in order. In this assignment you’ll develop this functionality for Twetter.&rdquo;</p>
+
+<p>To do:</p>
+
+<p><li>Make <code>/username</code> route to profile pages: need controller(?) and view</li>
+<li>@username in twet links to <code>user_profile_path</code></li></p>
+
+<p><a href="http://ruby-doc.org/core-2.0.0/String.html#method-i-gsub">Gsub</a> is suggested for implmenting the second feature.</p>
+
+<h2>Generate the controller</h2>
+
+
+<p>First: let&rsquo;s build User#show:</p>
+
+<figure class='code'><figcaption><span>console</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rails g controller users show</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add authentication and instance variable:</p>
+
+<figure class='code'><figcaption><span>users_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'><span class="c1">#all actions require authenticated user</span>
+</span><span class='line'><span class="n">before_filter</span> <span class="ss">:authenticate_user!</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">show</span>
+</span><span class='line'>      <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span> <span class="c1">#want to change this to :username</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Put some basic content in the view</p>
+
+<figure class='code'><figcaption><span>show.html.erb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;clearfix top-space small&quot;</span><span class="o">&gt;&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'><span class="sr">&lt;%= @user.username %&gt;&lt;br&gt;</span>
+</span><span class='line'><span class="sr">&lt;p&gt;Uh oh, put some more content here&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h2>Routing with :name instead of :id </h2>
+
+
+<p>in the <code>User.model.rb</code> user <a href="http://apidock.com/rails/ActiveRecord/Base/to_param">to_param</a> (this is depreciated in rails 4?)</p>
+
+<figure class='code'><figcaption><span>user.model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">to_param</span>
+</span><span class='line'>    <span class="nb">name</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>then in the User controller, you can do this:</p>
+
+<figure class='code'><figcaption><span>user_controller.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">show</span>
+</span><span class='line'>      <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find_by_name</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:name</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then in routes:</p>
+
+<figure class='code'><figcaption><span>routes.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/users/:name&#39;</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="s1">&#39;users#show&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This allows you to use <code>/:username</code> as a URL to <code>users#show</code>. The model code is needed to override using <code>:id</code>.</p>
+
+<p>Okay! Urls are set!</p>
+
+<p>Takeaway 1: Changing params shown in URLs using <code>find_by</code> and <code>to_param</code></p>
+
+<h2>Make @username a link</h2>
+
+
+<p>The rails way would be something like: in the twets controller, define a method that searches <code>:content</code> and replaces <code>@username</code> with <code>link_to "@username", user_show_path</code></p>
+
+<p>If this is done in the controller, the only option is to call the method in <code>Twet#create</code> and that would only implement this feature on new twets.</p>
+
+<p>Can the feature be built into the model?</p>
+
+<p>a = User.find(1)
+a.twets.find(1).content => requires content of twet.</p>
+
+<p>to gsub, first pull the block of text after @. so should return <code>@whatevertextthereisuntilaspace</code>, use regex?
+then, strip the @ and compare it against the list of usernames. if it matches a username, then gsub with <code>link_to</code>.</p>
+
+<p>To test, let&rsquo;s make some twets that include @username:</p>
+
+<figure class='code'><figcaption><span>console</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2.0.0p247 :001 &gt; a = User.find(21)
+</span><span class='line'>2.0.0p247 :002 &gt; a.twets.find(104).content
+</span><span class='line'>=&gt; "@evan, @username, @Retta,"
+</span><span class='line'>a.twets.find(104).content.gsub(/@[A-Za-z0-9]+/, "*")</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h2>Gsub on @mentions</h2>
+
+
+<p>the problem with this approach</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">content_tag</span> <span class="ss">:p</span><span class="p">,</span> <span class="n">twet</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="o">+</span><span class="n">twet</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">link_to</span> <span class="n">twet</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">))</span><span class="o">.</span><span class="n">html_safe</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>is that there are no params to use to generate links.</p>
+
+<p>What about if we hard code the urls?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">content_tag</span> <span class="ss">:p</span><span class="p">,</span> <span class="n">twet</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="o">+</span><span class="n">twet</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">link_to</span> <span class="s1">&#39;@&#39;</span><span class="o">+</span><span class="n">twet</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;/user/&#39;</span><span class="o">+</span><span class="n">twet</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">))</span><span class="o">.</span><span class="n">html_safe</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>yes! this works, but will only work on twet.user.name</p>
+
+<p>How can the method work on all @user.name?</p>
+
+<p>Use <code>capture</code> with regex</p>
+
+<figure class='code'><figcaption><span>@user to_link</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">%= content_tag :p, twet.content.gsub(/@(?&lt;username&gt;(\w+))/,&#39;&lt;a href=</span><span class="s2">&quot;&#39;+&#39;/user/\k&lt;username&gt;&#39;+&#39;&quot;</span><span class="o">&gt;</span><span class="err">@</span><span class="p">\</span><span class="n">k</span><span class="o">&lt;</span><span class="n">username</span><span class="o">&gt;&lt;</span><span class="sr">/a&gt;&#39;).html_safe%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This long regex is called on Twet.content:</p>
+
+<p>First, it takes the word after the <code>@</code> symbol and puts it in a <code>regex capture</code>. The syntax to capture is <code>/?&lt;variable_name&gt;(REGEXcodetocapturegoeshere)</code>. the caputure value can then be called by using <code>\k&lt;variable_name&gt;</code>.</p>
+
+<p>The real documentation for capturing in ruby is <a href="http://www.ruby-doc.org/core-1.9.3/Regexp.html#class-Regexp-label-Capturing">here</a>.</p>
+
+<p>This:<code>html_safe</code>  method is usually used when you want to render HTML from a string. It&rsquo;s generally a <a href="http://makandracards.com/makandra/2579-everything-you-know-about-html_safe-is-wrong">bad idea</a> because it leaves the site open to XSS attacks. Generally html escaping is used to use html entities instead of symbols for characters that cause rendering problems in some browsers.</p>
+
+<h2>Takeaways</h2>
+
+
+
+
+<ul>How to overide using :id in Controller#show urls</ul>
+
+
+<ul>Using gsub with regexes and capturing variables</ul>
+
+
+<ul>.html_safe and why it&#8217;s risky</ul>
+
+
+
+
+<h2>Still to do</h2>
+
+
+<p>Implementation of @username to link is silly: it&rsquo;s not very railish and requires typing out a long, error-prone regex every time we want to use that feature, plus calling .html_safe is a security issue (maybe). Figure out how to refactor into a method!</p>
+
+<p>Plus, refactoring it into a method is a lesson that will be applicable to other apps: i.e., how to find plain-text references to db rows and&hellip;do things to them.</p>
+
+<p>Finish out the view for User#show so it doesn&rsquo;t look so sad.</p>
+
+<p>Possible to refactor User#show into another controller? Why?</p>
+
+<h2>Using a helper</h2>
+
+
+<p>Helper methods can be added to <code>/helpers/application_help.rb</code>, all methods in ApplicationHelper are available in all views.</p>
+
+<p>To call a helper in a view:</p>
+
+<figure class='code'><figcaption><span>yourview.html.erb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">name_of_helper_method</span> <span class="vi">@your_instance_variable</span><span class="o">.</span><span class="n">someother</span><span class="o">.</span><span class="n">method</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For example, if we have <code>@twet.content</code> in the view that returns a string, we could use this helper:</p>
+
+<figure class='code'><figcaption><span>application_helper.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">evil_message</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">evil</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">upcase</span><span class="o">.</span><span class="n">reverse</span>
+</span><span class='line'>  <span class="n">evil</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then in the view:</p>
+
+<figure class='code'><figcaption><span>your_view.html.erb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">evil_message</span> <span class="vi">@twet</span><span class="o">.</span><span class="n">content</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If there&rsquo;s more stuff in <code>&lt;%= %&gt;</code> you can also do <code>&lt;%= content_tag :p, change_mention_to_links(twet.content) %&gt;</code></p>
+
+<p>And the method will be called on @twet.content, resulting in an evil-looking message.
+nb: it looks like a server restart is required to view changes to application_helper methods.</p>
+
+<p>This is one approach to create a <code>mentions_to_link</code> method.</p>
+
+<p>One possible solution is:</p>
+
+<figure class='code'><figcaption><span>def change_mention_to_links(text)</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">change_mention_to_links</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">words</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">answer</span> <span class="o">=</span> <span class="n">text</span>
+</span><span class='line'>  <span class="n">words</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">word</span><span class="o">|</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">word</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">username</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find_by_name</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">username</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">answer</span><span class="o">.</span><span class="n">replace</span> <span class="n">link_to</span> <span class="n">username</span><span class="p">,</span> <span class="n">user_path</span><span class="p">(</span><span class="vi">@user</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="n">answer</span><span class="o">.</span><span class="n">html_safe</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Write about the <code>replace</code> method. Refactor to remove Users controller.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-31T17:45:50-05:00" pubdate data-updated="true">Dec 31<span>st</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2013/12/31/twetter/" data-via="" data-counturl="http://evan-007.github.io/blog/2013/12/31/twetter/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/12/22/tipy-build-db-less-rails-app/" title="Previous Post: Tipy: Build db-less Rails App">&laquo; Tipy: Build db-less Rails App</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/01/02/adding-gravatars-to-rails/" title="Next Post: Adding gravatars to Rails">Adding gravatars to Rails &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2013/12/31/twetter/';
+        var disqus_url = 'http://evan-007.github.io/blog/2013/12/31/twetter/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

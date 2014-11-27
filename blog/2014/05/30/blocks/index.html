@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Blocks, Procs and Lambdas - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="What&rsquo;s the difference between the three? In rails, I used blocks a lot without actually knowing that it was a block: some-rails-thing1
+2
+3
+4
+5 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/05/30/blocks">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Blocks, Procs and Lambdas</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-30T08:37:28-04:00" pubdate data-updated="true">May 30<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>What&rsquo;s the difference between the three?<!--more--></p>
+
+<p>In rails, I used blocks a lot without actually knowing that it was a block:</p>
+
+<figure class='code'><figcaption><span>some-rails-thing</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Band</span><span class="o">.</span><span class="n">all</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">band</span><span class="o">|</span>
+</span><span class='line'>  <span class="nb">puts</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">band</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> | </span><span class="si">#{</span><span class="n">band</span><span class="o">.</span><span class="n">korean_name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">The</span> <span class="n">block</span> <span class="n">is</span> <span class="n">everything</span> <span class="n">after</span> <span class="sb">```do```</span> <span class="ow">and</span> <span class="n">could</span> <span class="n">also</span> <span class="n">be</span> <span class="n">written</span> <span class="k">in</span> <span class="n">a</span> <span class="n">single</span> <span class="n">line</span>
+</span><span class='line'><span class="ss">like</span><span class="p">:</span> <span class="sb">```Band.all.each { |band| puts &quot;</span><span class="si">#{</span><span class="n">band</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="sb"> | </span><span class="si">#{</span><span class="n">band</span><span class="o">.</span><span class="n">korean_name</span><span class="si">}</span><span class="sb">&quot; }```</span><span class="o">.</span> <span class="no">They</span> <span class="n">are</span> <span class="n">kind</span> <span class="n">of</span> <span class="n">like</span> <span class="n">anonymous</span> <span class="n">functions</span> <span class="k">in</span> <span class="n">javascript</span> <span class="k">in</span> <span class="n">that</span> <span class="n">they</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">bound</span> <span class="n">to</span> <span class="n">an</span> <span class="n">identifier</span> <span class="p">(</span><span class="n">some</span> <span class="n">variable</span> <span class="nb">name</span> <span class="ow">or</span> <span class="n">whatever</span><span class="p">)</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">What</span> <span class="n">happens</span> <span class="k">if</span> <span class="n">we</span> <span class="n">want</span> <span class="n">to</span> <span class="n">reuse</span> <span class="n">that</span> <span class="n">block</span> <span class="ow">and</span> <span class="n">run</span> <span class="n">the</span> <span class="n">same</span> <span class="n">code</span> <span class="n">on</span> <span class="sb">```Singer```</span> <span class="ow">or</span> <span class="n">reuse</span> <span class="n">the</span> <span class="n">code</span> <span class="n">outside</span> <span class="n">of</span> <span class="n">the</span> <span class="n">enumerator?</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Procs</span> <span class="n">allow</span> <span class="n">blocks</span> <span class="n">to</span> <span class="n">be</span> <span class="n">given</span> <span class="n">a</span> <span class="nb">name</span><span class="p">,</span> <span class="ow">or</span> <span class="n">a</span> <span class="n">pointer</span><span class="p">,</span> <span class="n">so</span> <span class="n">that</span> <span class="n">they</span> <span class="n">can</span> <span class="n">be</span> <span class="n">reused</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ruby some-other-rails-thing
+list_names = Proc.new { |thing| puts &ldquo;#{thing.name} | #{thing.korean_name}&rdquo; }</p>
+
+<h1>or list_names = proc { |thing| puts &ldquo;#{thing.name} | #{thing.korean_name}&rdquo; }</h1>
+
+<p>list_names.call Band.first</p>
+
+<h1>returns output of the proc</h1>
+
+<h1>can call on something else, too:</h1>
+
+<p>list_names.call Singer.find(7)</p>
+
+<figure class='code'><figcaption><span>some-rails-thing</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="n">h4</span><span class="o">&gt;</span><span class="no">Lambdas</span><span class="o">&lt;</span><span class="sr">/h4&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">Proc is sort for procedure(????), similar to Scheme, like in the MIT course. Scheme also has lambda, which is some other sytax for declaring a procedure, dunno, verify that.</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">In ruby, lambdas are a lot like procs:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ruby
+list_names_lambda = lambda { |thing| puts &ldquo;#{thing.name} | #{thing.korean_name}&rdquo; }</p>
+
+<h1>alt syntax: list_names_lambda = &ndash;> (thing) { puts &ldquo;#{thing.name} | #{thing.korean_name}&rdquo; }</h1>
+
+<p>list_names_lambda.call Band.first</p>
+
+<h1>same output as before</h1>
+
+<h1>but lambdas throw errors on params:</h1>
+
+<p>list_names.call(Band.first, &lsquo;some random string lololol&rsquo;)</p>
+
+<h1>returns list_names on Band.first, ignores 2nd param</h1>
+
+<p>list_names_lambda.call(Band.first, &lsquo;some random string lolol&rsquo;)
+ArgumentError: wrong number of arguments (2 for 1)</p>
+
+<figure class='code'><figcaption><span>some-rails-thing</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">The</span> <span class="n">only</span> <span class="n">other</span> <span class="n">big</span> <span class="n">difference</span> <span class="n">I</span> <span class="n">could</span> <span class="n">find</span> <span class="n">on</span> <span class="n">the</span> <span class="n">two</span> <span class="n">was</span> <span class="n">that</span> <span class="k">when</span> <span class="n">using</span> <span class="sb">```return```</span><span class="p">,</span> <span class="n">a</span> <span class="nb">proc</span> <span class="n">will</span> <span class="k">do</span> <span class="n">things</span> <span class="n">a</span> <span class="nb">lambda</span> <span class="n">doesn</span><span class="err">&#39;</span><span class="n">t</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ruby</p>
+
+<p>def method_1</p>
+
+<pre><code>list_names = Proc.new { |thing| return "#{thing.name} | #{thing.korean_name}" }
+</code></pre>
+
+<p>  list_names.call(Band.first)
+  return &lsquo;the meaning of life&rsquo;
+end</p>
+
+<p>def method_2</p>
+
+<pre><code>list_names_lambda = lambda { |thing| return "#{thing.name} | #{thing.korean_name}" }
+list_names_lambda.call(Band.first)
+</code></pre>
+
+<p>  return &lsquo;ask method_1 for the meaning of life&rsquo;
+end</p>
+
+<figure class='code'><figcaption><span>some-rails-thing</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Calling</span> <span class="n">method_1</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">result</span> <span class="n">of</span> <span class="n">the</span> <span class="nb">proc</span><span class="p">,</span> <span class="n">but</span> <span class="n">calling</span> <span class="n">method_2</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">final</span> <span class="k">return</span> <span class="k">in</span> <span class="n">the</span> <span class="nb">method</span><span class="o">!</span> <span class="no">In</span> <span class="n">other</span> <span class="n">words</span><span class="p">,</span> <span class="n">method_1</span> <span class="n">will</span> <span class="n">tell</span> <span class="n">you</span> <span class="n">about</span> <span class="sb">```Band.first```</span> <span class="k">while</span> <span class="n">method_2</span> <span class="n">will</span> <span class="n">tell</span> <span class="n">you</span> <span class="n">to</span> <span class="n">ask</span> <span class="n">method_1</span> <span class="n">about</span> <span class="n">the</span> <span class="n">meaning</span> <span class="n">of</span> <span class="n">life</span><span class="o">.</span> <span class="no">The</span> <span class="n">general</span> <span class="n">consensus</span> <span class="n">seems</span> <span class="n">to</span> <span class="n">be</span> <span class="n">to</span> <span class="n">get</span> <span class="k">in</span> <span class="n">the</span> <span class="n">habit</span> <span class="n">of</span> <span class="n">using</span> <span class="n">lambdas</span> <span class="n">to</span> <span class="n">avoid</span> <span class="n">obnoxious</span> <span class="n">debug</span> <span class="n">errors</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="no">Back</span> <span class="n">to</span> <span class="no">Rails</span><span class="o">&lt;</span><span class="sr">/h2&gt;</span>
+</span><span class='line'><span class="sr">For scopes:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ruby
+scope :approved, &ndash;> {where(approved: true)}
+&#8220;`
+We use a lambda, but why? Question for <a href="http://apidock.com/rails/ActiveRecord/Scoping/Named/ClassMethods/scope">another day</a>.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-30T08:37:28-04:00" pubdate data-updated="true">May 30<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/05/30/blocks/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/05/30/blocks/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/05/17/angular-overview/" title="Previous Post: angular overview">&laquo; angular overview</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/05/31/json/" title="Next Post: Parsing JSON w/ruby">Parsing JSON w/ruby &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/09/json-with-rails-booleans/">JSON With Rails Booleans</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/08/ng-messages-and-rails/">Realtime Angular-rails Form Validations</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/05/30/blocks/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/05/30/blocks/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
