@@ -1,0 +1,868 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ember Madlibs - Let's Code</title>
+  <meta name="author" content="Evan">
+
+  
+  <meta name="description" content="Build a simple madlibs app with ember cli. I learned angularJS with thinkful by building lots
+of small projects and gradually learning the angular &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://evan-007.github.io/blog/2014/11/29/ember-madlibs">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Let's Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Let's Code</a></h1>
+  
+    <h2>Notes and thoughts</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:evan-007.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Ember Madlibs</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-29T10:41:01-05:00" pubdate data-updated="true">Nov 29<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Build a simple madlibs app with ember cli.<!--more--></p>
+
+<p>I learned angularJS with <a href="http://www.thinkful.com">thinkful</a> by building lots
+of small projects and gradually learning the angular stack. Let&rsquo;s do the same thing with emberJS and ember cli!</p>
+
+<h1>The Project</h1>
+
+<p>Everyone knows madlibs &ndash; you enter random nouns, verbs, adjectives,
+ etc and then get a hopefully hilarious story at the end. It&rsquo;s a nice project
+ for a firstshot with a JS framework because it&rsquo;s an actual use-case for
+ two-way binding.</p>
+
+<p> Basically, we&rsquo;ll build a simple form that prompts the user for different parts
+ of speech and then reveals the story upon completion.</p>
+
+<p>This post uses <code>"ember-cli": "0.1.2"</code>, which loads <code>"ember": "1.7.0", "ember-data": "1.0.0-beta.10"</code>.</p>
+
+<h1>Getting Started</h1>
+
+<p>Install ember-cli <code>npm install -g ember-cli</code>, make a new project
+<code>ember new madlibs</code>, start the server <code>ember s</code> and open the project in
+whatever your editor is.</p>
+
+<p>First, we need to make a test for viewing our homepage. Borrowing from
+<a href="http://reefpoints.dockyard.com/2014/05/08/building-an-ember-app-with-rails-part-2.html">Dockyard</a>, create the first integration test:</p>
+
+<figure class='code'><figcaption><span>tests/integration/homepage-test.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="kr">import</span> <span class="nx">startApp</span> <span class="nx">from</span> <span class="s1">&#39;madlibs/tests/helpers/start-app&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">App</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;Integration - Homepage&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">setup</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">App</span> <span class="o">=</span> <span class="nx">startApp</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">Ember</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="nx">App</span><span class="p">,</span> <span class="s1">&#39;destroy&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;should welcome the user&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">visit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">equal</span><span class="p">(</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;h2&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(),</span> <span class="s1">&#39;Ember Madlibs&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Visit <code>localhost:4200/tests</code> and it will fail. To make it pass, update the application template:</p>
+
+<figure class='code'><figcaption><span>app/templates/application.hbs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;h2</span> <span class="na">id=</span><span class="s">&#39;title&#39;</span><span class="nt">&gt;</span>Ember Madlibs<span class="nt">&lt;/h2&gt;</span>
+</span><span class='line'>
+</span><span class='line'>{{outlet}}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And now the test should pass.</p>
+
+<h1>The madlib</h1>
+
+<p>The madlib will be a form that the user fills out, and then show the resulting story
+when the form is submitted. Let&rsquo;s write a high level test for this feature:</p>
+
+<figure class='code'><figcaption><span>filling-out-madlibs-test.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="kr">import</span> <span class="nx">startApp</span> <span class="nx">from</span> <span class="s1">&#39;madlibs/tests/helpers/start-app&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">App</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;Integration - Filling out Madlibs&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">setup</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">App</span> <span class="o">=</span> <span class="nx">startApp</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">Ember</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="nx">App</span><span class="p">,</span> <span class="s1">&#39;destroy&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;should display a hilarious story&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">visit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#javascript-framework&#39;</span><span class="p">,</span> <span class="s1">&#39;EmberJS&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#person-name&#39;</span><span class="p">,</span> <span class="s1">&#39;Captain America&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#mega-corp&#39;</span><span class="p">,</span> <span class="s1">&#39;WallMart&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#animal&#39;</span><span class="p">,</span> <span class="s1">&#39;swampHawk&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#ridiculous-adj&#39;</span><span class="p">,</span> <span class="s1">&#39;insane&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">click</span><span class="p">(</span><span class="s1">&#39;#submit&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">text</span> <span class="o">=</span> <span class="nx">find</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">();</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">pattern</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;Captain America&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nx">equal</span><span class="p">(</span><span class="nx">pattern</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">text</span><span class="p">),</span> <span class="kc">true</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This test visits our forms, finds input fields based on their <code>id</code>, submits the form
+and then expects a <code>p</code> that contains &lsquo;Captain America&rsquo;. This test is enough to show that the madlib functions, but also highlights one of the issues with high-level integration tests: they are brittle.</p>
+
+<p>We could have tested that the entire text of the madlib <code>p</code> matched all of our input values, but what happens when we decide to start changing our madlibs story? The test breaks and we have to change it. Using a <code>regex</code> to match the value from the name input decouples our test a little, at the expense of verifying that all of our
+madlib inputs are in the resulting text. We could repeat the <code>equal(pattern.test(text), true);</code> for each of our input fields, but that seems like it would take too long.</p>
+
+<p>Let&rsquo;s make the test pass. So far, our app only has an application template.
+The application template is a good place to hook up at navbar or footer, but
+we probably shouldn&rsquo;t put the application in that template. By default, ember will
+put the <code>index.hbs</code> template in that <code>outlet</code>, but we have to generate it: <code>ember g template index</code>. Now, let&rsquo;s build our form:</p>
+
+<figure class='code'><figcaption><span>index.hbs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;form</span> <span class="err">{{</span><span class="na">action</span> <span class="err">&#39;</span><span class="na">showStory</span><span class="err">&#39;</span> <span class="na">on=</span><span class="s">&#39;submit&#39;</span><span class="err">}}</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>    {{input type=text id=&#39;javascript-framework&#39; value=jsFramework placeholder=&#39;JS framework&#39;}}
+</span><span class='line'>  <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>    {{input type=text id=&#39;person-name&#39; value=name placeholder=&quot;Person&#39;s name&quot;}}
+</span><span class='line'>  <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>    {{input type=text id=&#39;mega-corp&#39; value=corp placeholder=&quot;Mega corporation&quot;}}
+</span><span class='line'>  <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>    {{input type=text id=&#39;animal&#39; value=animal placeholder=&#39;Silly animal&#39;}}
+</span><span class='line'>  <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>    {{input type=text id=&#39;ridiculous-adj&#39; value=emo-adj placeholder=&#39;Negative Adjective&#39;}}
+</span><span class='line'>  <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&#39;submit&#39;</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">value=</span><span class="s">&quot;Make a story!&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'><span class="nt">&lt;/form&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is just a simple form with handlebars helpers to build the <code>input</code> fields.
+The submit action calls <code>showStory</code>, a function we have yet to define. The test
+fails because this action does not exist yet: <code>Uncaught Error: Nothing handled the action 'showStory'. If you did handle the action, this error can be caused by returning true from an action handler in a controller, causing the action to bubble.</code></p>
+
+<p>Taking a hint from the error message, it sounds like we need to handle this in a
+controller. We&rsquo;re using the <code>index</code> template, so generate a matching controller:
+<code>ember g controller index</code>.</p>
+
+<p>Before we build out <code>showStory</code>, let&rsquo;s think a bit more about how this will work.
+When the page is loaded, we&rsquo;ll create a property called <code>finishedStory</code> and set it to <code>false</code>. After submitting the form, we can update <code>finishedStory</code> to equal true.
+In our template, we&rsquo;ll hide/show our madlib story based on the value of <code>finishedStory</code>.</p>
+
+<p>First, update the <code>index</code> template to include the story:</p>
+
+<figure class='code'><figcaption><span>index.hbs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="c">&lt;!--after the form--&gt;</span>
+</span><span class='line'>  {{#if finishedStory}}
+</span><span class='line'>    <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>      {{name}}, a {{jsFramework}} developer, was {{emo-adj}} until he found {{animal}}JS, a new framework from {{corp}}.
+</span><span class='line'>    <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>{{/if}}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now let&rsquo;s write a test for our controller.</p>
+
+<figure class='code'><figcaption><span>tests/unit/controllers/index-test.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">moduleFor</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">test</span>
+</span><span class='line'><span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;ember-qunit&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">moduleFor</span><span class="p">(</span><span class="s1">&#39;controller:index&#39;</span><span class="p">,</span> <span class="s1">&#39;IndexController&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// Specify the other units that are required for this test.</span>
+</span><span class='line'>  <span class="c1">// needs: [&#39;controller:foo&#39;]</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Replace this with your real tests.</span>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;it exists&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">controller</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">subject</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">ok</span><span class="p">(</span><span class="nx">controller</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;finishedStory initializes to false&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">controller</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">subject</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">equal</span><span class="p">(</span><span class="nx">controller</span><span class="p">.</span><span class="nx">finishedStory</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Easy &ndash; ember generates most of that code for us, we just add the test that
+our controller comes with a property called <code>finishedStory</code> that is <code>false</code>.</p>
+
+<p>The test fails because <code>finishedStory</code> is undefined, so make it pass:</p>
+
+<figure class='code'><figcaption><span>app/controllers/index.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">Ember</span><span class="p">.</span><span class="nx">Controller</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">finishedStory</span><span class="o">:</span> <span class="kc">false</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and now the test should pass. Let&rsquo;s extend the test to cover our form submit.
+Remember, when the form is submitted, we need to call some <code>showStory</code> action that
+sets <code>finishedStory</code> to <code>true</code>.</p>
+
+<figure class='code'><figcaption><span>tests/unit/controllers/index-test.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="c1">// bunch of stuff omitted</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;showStory changes finishedStory to true&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">controller</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">subject</span><span class="p">();</span>
+</span><span class='line'>  <span class="nx">controller</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;showStory&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">equal</span><span class="p">(</span><span class="nx">controller</span><span class="p">.</span><span class="nx">finishedStory</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we simulate sending the action from our form and expect the controller to do
+its thing. To make this pass:</p>
+
+<figure class='code'><figcaption><span>app/controllers/index.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">Ember</span><span class="p">.</span><span class="nx">Controller</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">finishedStory</span><span class="o">:</span> <span class="kc">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="nx">actions</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">showStory</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;finishedStory&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And with that the controller passes! This completes the form submit event, so
+it should also make the integration test pass.</p>
+
+<p>But what happens when someone wants to try our madlibs a second time? We need a
+reset button and should probably also not allow them to just change the form values.
+Let&rsquo;s hide the form and submit buttons after the form is submitted and replace it
+with a reset button.</p>
+
+<figure class='code'><figcaption><span>resetting-madlibs-test.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="kr">import</span> <span class="nx">startApp</span> <span class="nx">from</span> <span class="s1">&#39;madlibs/tests/helpers/start-app&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">App</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">module</span><span class="p">(</span><span class="s1">&#39;Integration - resetting Madlibs&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">setup</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">App</span> <span class="o">=</span> <span class="nx">startApp</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">Ember</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="nx">App</span><span class="p">,</span> <span class="s1">&#39;destroy&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;should clear the form&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">visit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#javascript-framework&#39;</span><span class="p">,</span> <span class="s1">&#39;EmberJS&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#person-name&#39;</span><span class="p">,</span> <span class="s1">&#39;Captain America&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#mega-corp&#39;</span><span class="p">,</span> <span class="s1">&#39;WallMart&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#animal&#39;</span><span class="p">,</span> <span class="s1">&#39;swampHawk&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">fillIn</span><span class="p">(</span><span class="s1">&#39;input#ridiculous-adj&#39;</span><span class="p">,</span> <span class="s1">&#39;insane&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">click</span><span class="p">(</span><span class="s1">&#39;#submit&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">click</span><span class="p">(</span><span class="s1">&#39;#reset&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nx">equal</span><span class="p">(</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input#person-name&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(),</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There&rsquo;s some code duplication from the previous integration test that
+should probably be refactored into a helper later, but here we
+just submit the form, then click <code>reset</code> and expect the form to be blank.</p>
+
+<p>This fails because it doesn&rsquo;t have a button to click yet. Before we add it,
+let&rsquo;s think about how this workflow will work.</p>
+
+<p><em>User enters page
+</em>form is blank &amp; shown + text is hidden
+<em>user submits form
+</em>form is hidden, text is shown
+<em>user clicks reset
+</em>form is blank &amp; shown, text is hidden</p>
+
+<p>We&rsquo;ve already used the boolean <code>finishedStory</code> to hide/show the madlibs text,
+so let&rsquo;s repurpose that to handle the rest of the hiding/showing.</p>
+
+<figure class='code'><figcaption><span>index.hbs </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'>{{#unless finishedStory}}
+</span><span class='line'>  <span class="nt">&lt;form</span> <span class="err">{{</span><span class="na">action</span> <span class="err">&#39;</span><span class="na">showStory</span><span class="err">&#39;</span> <span class="na">on=</span><span class="s">&#39;submit&#39;</span><span class="err">}}</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>      {{input type=text id=&#39;javascript-framework&#39; value=jsFramework placeholder=&#39;JS framework&#39;}}
+</span><span class='line'>    <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>      {{input type=text id=&#39;person-name&#39; value=name placeholder=&quot;Person&#39;s name&quot;}}
+</span><span class='line'>    <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>      {{input type=text id=&#39;mega-corp&#39; value=corp placeholder=&quot;Mega corporation&quot;}}
+</span><span class='line'>    <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>      {{input type=text id=&#39;animal&#39; value=animal placeholder=&#39;Silly animal&#39;}}
+</span><span class='line'>    <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>      {{input type=text id=&#39;adj&#39; value=adj placeholder=&#39;Negative Adjective&#39;}}
+</span><span class='line'>    <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&#39;submit&#39;</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">value=</span><span class="s">&quot;Make a story!&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/form&gt;</span>
+</span><span class='line'>{{else}}
+</span><span class='line'>  <span class="nt">&lt;p&gt;</span>
+</span><span class='line'>    {{name}}, a {{jsFramework}} developer, was {{adj}} until he found {{animal}}JS, a new framework from {{corp}}.
+</span><span class='line'>  <span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">id=</span><span class="s">&#39;reset&#39;</span> <span class="err">{{</span><span class="na">action</span> <span class="err">&#39;</span><span class="na">resetStory</span><span class="err">&#39;</span> <span class="na">on=</span><span class="s">&#39;click&#39;</span><span class="err">}}</span> <span class="na">value=</span><span class="s">&quot;Try again?&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>{{/unless}}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we&rsquo;ve nested our template in an <code>unless</code> block to handle showing
+the form and madlibs texts when appropriate. We also added the reset button,
+but the test is still failing because <code>resetStory</code> isn&rsquo;t handled by the controller.</p>
+
+<p>Add a test for <code>resetStory</code>:</p>
+
+<figure class='code'><figcaption><span>index-test.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="c1">// truncated</span>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;resetStory changes finishedStory to false&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">controller</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">subject</span><span class="p">();</span>
+</span><span class='line'>  <span class="nx">controller</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;showStory&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nx">controller</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;resetStory&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">equal</span><span class="p">(</span><span class="nx">controller</span><span class="p">.</span><span class="nx">finishedStory</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;resetStory resets ctrl attrs&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">controller</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">subject</span><span class="p">();</span>
+</span><span class='line'>  <span class="nx">controller</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;evan&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nx">controller</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;showStory&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nx">controller</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;resetStory&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">equal</span><span class="p">(</span><span class="nx">controller</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We also added a test to be sure that <code>resetStory</code> clears the <code>name</code> property
+if it was set when the user filled out the form. We should probably be testing
+all of the form values to be sure that they are reset, but I don&rsquo;t know
+any easy way to do that without typing them all out.</p>
+
+<p>Update the controller to make the test pass:</p>
+
+<figure class='code'><figcaption><span>index.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="kr">import</span> <span class="nx">Ember</span> <span class="nx">from</span> <span class="s1">&#39;ember&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">export</span> <span class="k">default</span> <span class="nx">Ember</span><span class="p">.</span><span class="nx">Controller</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">finishedStory</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">actions</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">showStory</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;finishedStory&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nx">resetStory</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;finishedStory&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;animal&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;corp&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;jsFramework&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;emo-adj&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Manually resetting all properties like that is probably not the best way to
+clear the form, but this will be refactored later when we start using local storage.</p>
+
+<p>And with that the first iteration of the madlibs app is complete! Obviously
+ember can do a whole lot more, but I find it&rsquo;s often easier to start small.</p>
+
+<p>The key takeaway for me is how easy it is to setup both integration and unit tests
+with qUnit. The docs for qunit leave a lot to be desired, and the matchers
+are lacking, but we wrote very very little code and got feedback super fast.
+This is definately a much easier way to do red-green-refactor than depending on
+slow selenium tests.</p>
+
+<p>Next, I&rsquo;ll switch over to using local storage and move the form and story
+to different templates &mdash; and maybe add some styling so it doesn&rsquo;t look like
+complete crap. Checkout <a href="https://github.com/evan-007/EmberMadlibs/tree/4192796646a58e285e15b477980e2049770959b1">this commit</a> for the finished app up to this point.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Evan</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-29T10:41:01-05:00" pubdate data-updated="true">Nov 29<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://evan-007.github.io/blog/2014/11/29/ember-madlibs/" data-via="" data-counturl="http://evan-007.github.io/blog/2014/11/29/ember-madlibs/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/16/ember-devise-simple-auth/" title="Previous Post: Ember devise simple auth">&laquo; Ember devise simple auth</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/11/29/qunit-testing/" title="Next Post: qunit testing">qunit testing &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/29/qunit-testing/">Qunit Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/29/ember-madlibs/">Ember Madlibs</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/16/ember-devise-simple-auth/">Ember Devise Simple Auth</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/22/more-rails-refactoring/">More Rails Refactoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/11/protractor-testing/">Protractor Testing</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/evan-007">@evan-007</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'evan-007',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Evan -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'letscodeghpages';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://evan-007.github.io/blog/2014/11/29/ember-madlibs/';
+        var disqus_url = 'http://evan-007.github.io/blog/2014/11/29/ember-madlibs/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
